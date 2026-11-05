@@ -16,6 +16,7 @@
    - [Option A: Hybrid Local Development (Recommended)](#option-a-hybrid-local-development-recommended)
    - [Option B: Full Docker Compose Environment](#option-b-full-docker-compose-environment)
    - [Option C: Native / Standalone Local Setup](#option-c-native--standalone-local-setup)
+   - [💡 Common Troubleshooting & Tips](#-common-troubleshooting--tips)
 7. [Service Ports & Endpoints Directory](#-service-ports--endpoints-directory)
 8. [Testing & Verification](#-testing--verification)
 9. [Content Model & Linter](#-content-model--linter)
@@ -219,10 +220,13 @@ To start developing immediately on your local machine:
 # 1. Start backing services (PostgreSQL, RabbitMQ, Redis, Silo/MinIO)
 docker compose -f infra/docker-compose.yml up -d
 
-# 2. Start all microservices (:4000-:4005) and web app (:3000) concurrently
+# 2. Push database schemas and create tables across all PostgreSQL schemas
+pnpm db:push
+
+# 3. Start all microservices (:4000-:4005) and web app (:3000) concurrently
 pnpm dev
 
-# 3. In another terminal tab, sync workshop content into the database
+# 4. In another terminal tab, sync workshop content into the database
 pnpm content:sync
 ```
 Then open [http://localhost:3000/workshops](http://localhost:3000/workshops) in your browser.
@@ -260,19 +264,11 @@ docker compose -f infra/docker-compose.yml up -d
 pnpm install
 ```
 
-#### 4. Generate isolated Prisma clients & run migrations (first time only)
+#### 4. Push database schemas and create tables
 ```bash
-pnpm --filter catalog-service run prisma:generate
-pnpm --filter starter-service run prisma:generate
-pnpm --filter verification-service run prisma:generate
-pnpm --filter progress-service run prisma:generate
-
-# Apply migrations to your local Postgres schemas
-pnpm --filter catalog-service prisma migrate dev --name init
-pnpm --filter starter-service prisma migrate dev --name init
-pnpm --filter verification-service prisma migrate dev --name init
-pnpm --filter progress-service prisma migrate dev --name init
+pnpm db:push
 ```
+*This connects to your running PostgreSQL instance and creates all tables across the 4 isolated microservice schemas (`catalog`, `starter`, `verification`, `progress`).*
 
 #### 5. Start all backend microservices and the web app in parallel
 ```bash
@@ -322,8 +318,23 @@ docker compose -f infra/docker-compose.yml logs -f
    ```bash
    pnpm install
    pnpm build
+   pnpm db:push
    pnpm dev
+   
+   # In another terminal window:
+   pnpm content:sync
    ```
+
+---
+
+### 💡 Common Troubleshooting & Tips
+
+- **`The table 'catalog.workshops' does not exist in the current database`**:
+  - Run `pnpm db:push`. This pushes Prisma schemas to your PostgreSQL instance and creates all required tables across all 4 microservice schemas.
+- **`Failed to load workshops: Failed to fetch`**:
+  - Ensure `pnpm dev` is running in your terminal. This boots up the API Gateway on port `4000` and the Catalog Service on port `4001`.
+- **`'-H' is not recognized as an internal or external command` (Windows CMD)**:
+  - Do not use multiline bash `curl` commands on Windows. Always use the built-in cross-platform runner: `pnpm content:sync`.
 
 ---
 

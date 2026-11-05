@@ -4,6 +4,7 @@ import {
   Headers,
   UnauthorizedException,
   Body,
+  Inject,
 } from '@nestjs/common';
 import { ApiHeader, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Public } from '@app/auth';
@@ -13,7 +14,10 @@ import * as path from 'path';
 @ApiTags('Internal Content Sync')
 @Controller('internal/content')
 export class ContentSyncController {
-  constructor(private readonly syncService: ContentSyncService) {}
+  constructor(
+    @Inject(ContentSyncService)
+    private readonly syncService: ContentSyncService,
+  ) {}
 
   @Public()
   @Post('sync')

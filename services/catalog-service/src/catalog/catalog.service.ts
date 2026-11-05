@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Inject } from '@nestjs/common';
 import { PrismaService } from '../prisma.service.js';
 import type {
   WorkshopSummaryDto,
@@ -9,7 +9,10 @@ import type {
 
 @Injectable()
 export class CatalogService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    @Inject(PrismaService)
+    private readonly prisma: PrismaService,
+  ) {}
 
   async listWorkshops(): Promise<WorkshopSummaryDto[]> {
     const workshops = await this.prisma.workshop.findMany({

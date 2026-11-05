@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Inject } from '@nestjs/common';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as yaml from 'yaml';
@@ -9,7 +9,10 @@ import type { ContentLevel, ContentKind } from '@app/contracts';
 export class ContentSyncService {
   private readonly logger = new Logger(ContentSyncService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    @Inject(PrismaService)
+    private readonly prisma: PrismaService,
+  ) {}
 
   async syncFromDirectory(contentDir: string) {
     if (!fs.existsSync(contentDir)) {

@@ -99,7 +99,16 @@ export function setupStaticProxies(app: any, verifier: JwtVerifierService) {
       },
     });
 
-    app.use(route.path, authMiddleware, proxy);
+    app.use((req: Request, res: Response, next: NextFunction) => {
+      const url = req.originalUrl || req.url;
+      const pathname = url.split('?')[0];
+      if (pathname === route.path || pathname.startsWith(route.path + '/')) {
+        return authMiddleware(req, res, () => {
+          proxy(req, res, next);
+        });
+      }
+      next();
+    });
   });
 }
 

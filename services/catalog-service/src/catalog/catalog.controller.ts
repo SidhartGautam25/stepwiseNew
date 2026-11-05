@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
+import { Controller, Get, Param, Query, Inject } from '@nestjs/common';
 import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Public } from '@app/auth';
 import { CatalogService } from './catalog.service.js';
@@ -7,7 +7,10 @@ import type { ContentLevel } from '@app/contracts';
 @ApiTags('Workshops')
 @Controller('v1/workshops')
 export class CatalogController {
-  constructor(private readonly catalogService: CatalogService) {}
+  constructor(
+    @Inject(CatalogService)
+    private readonly catalogService: CatalogService,
+  ) {}
 
   @Public()
   @Get()

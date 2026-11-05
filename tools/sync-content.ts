@@ -46,6 +46,10 @@ async function main() {
       } else {
         const errorText = await res.text();
         console.warn(`[Handrail Content Sync] ${url} responded with ${res.status}: ${errorText}`);
+        if (errorText.includes('does not exist in the current database')) {
+          console.warn(`\n💡 Tip: Your PostgreSQL database is running, but tables haven't been created yet.`);
+          console.warn(`👉 Please run: pnpm db:push\n`);
+        }
       }
     } catch (err: any) {
       console.warn(`[Handrail Content Sync] Could not connect to ${url}: ${err.message}`);
