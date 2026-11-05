@@ -10,13 +10,25 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        brand: {
-          50: '#f0fdf4',
-          100: '#dcfce7',
-          500: '#22c55e',
-          600: '#16a34a',
-          700: '#15803d',
+        theme: {
+          bg: 'var(--canvas-bg)',
+          fg: 'var(--canvas-fg)',
+          card: 'var(--card-bg)',
+          border: 'var(--border-color)',
+          yellow: 'var(--accent-yellow)',
+          pink: 'var(--accent-pink)',
+          blue: 'var(--accent-blue)',
+          green: 'var(--accent-green)',
+          red: 'var(--accent-red)',
+          terminal: 'var(--terminal-bg)',
+          muted: 'var(--muted-text)',
         },
+      },
+      boxShadow: {
+        'hard-sm': 'var(--shadow-hard-sm)',
+        'hard-md': 'var(--shadow-hard-md)',
+        'hard-lg': 'var(--shadow-hard-lg)',
+        'hard-xl': 'var(--shadow-hard-xl)',
       },
     },
   },
@@ -24,4 +36,3 @@ const config: Config = {
 };
 
 export default config;
-
