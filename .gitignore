@@ -1,0 +1,43 @@
+# Node
+node_modules
+.pnpm-store
+dist
+.turbo
+build
+.next
+out
+
+# Environment & Secrets
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+
+# OS & Editor
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea
+
+# Prisma
+generated/
+
+# Go
+tools/runner/bin
+tools/runner/runner.exe
+
+# Testing & Coverage
+coverage/
+test-results/
+playwright-report/
+
