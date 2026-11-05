@@ -7,12 +7,16 @@
     "build": "turbo run build",
     "dev": "turbo run dev --parallel",
     "lint": "turbo run lint",
+    "lint:content": "tsx tools/content-linter/index.ts",
     "test": "turbo run test",
     "clean": "turbo run clean"
   },
   "devDependencies": {
+    "tsx": "^4.19.3",
     "turbo": "^2.4.4",
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "vitest": "^3.0.7",
+    "yaml": "^2.7.0"
   }
 }
 
