@@ -6,13 +6,17 @@ export interface HandrailLogoProps {
   className?: string;
   showText?: boolean;
   href?: string;
+  textColor?: 'black' | 'white';
 }
 
 export function HandrailLogo({
   className = '',
   showText = true,
   href = '/',
+  textColor = 'black',
 }: HandrailLogoProps) {
+  const textColorClass = textColor === 'white' ? 'text-white' : 'text-black';
+
   const content = (
     <div className={`inline-flex items-center gap-2.5 group cursor-pointer ${className}`}>
       {/* Icon: Yellow square with crisp black border and handrail stair / zigzag icon */}
@@ -33,7 +37,7 @@ export function HandrailLogo({
       </div>
 
       {showText && (
-        <span className="font-extrabold text-xl tracking-tight text-black">
+        <span className={`font-extrabold text-xl tracking-tight ${textColorClass}`}>
           {SITE_CONFIG.name}
         </span>
       )}
@@ -46,4 +50,3 @@ export function HandrailLogo({
 
   return content;
 }
-

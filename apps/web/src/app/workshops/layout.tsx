@@ -1,5 +1,6 @@
 import React from 'react';
 import { Navbar } from '../../components/layout/Navbar/Navbar';
+import { Footer } from '../../components/layout/Footer';
 
 export default function WorkshopsLayout({
   children,
@@ -12,7 +13,7 @@ export default function WorkshopsLayout({
       <main className="flex-1 max-w-7xl w-full mx-auto p-6 sm:p-8">
         {children}
       </main>
+      <Footer />
     </div>
   );
 }
-
