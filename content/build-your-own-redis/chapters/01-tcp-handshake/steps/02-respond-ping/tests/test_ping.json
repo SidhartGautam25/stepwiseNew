@@ -1,0 +1,22 @@
+[
+  {
+    "id": "test_ping_command",
+    "name": "PING Command",
+    "type": "resp",
+    "target": "127.0.0.1:6379",
+    "send": "*1\r\n$4\r\nPING\r\n",
+    "expect": "+PONG\r\n",
+    "timeout_ms": 2000
+  },
+  {
+    "id": "test_multiple_pings_single_conn",
+    "name": "Consecutive PINGs",
+    "type": "resp",
+    "target": "127.0.0.1:6379",
+    "send_series": [
+      { "send": "*1\r\n$4\r\nPING\r\n", "expect": "+PONG\r\n" },
+      { "send": "*1\r\n$4\r\nPING\r\n", "expect": "+PONG\r\n" }
+    ],
+    "timeout_ms": 2000
+  }
+]

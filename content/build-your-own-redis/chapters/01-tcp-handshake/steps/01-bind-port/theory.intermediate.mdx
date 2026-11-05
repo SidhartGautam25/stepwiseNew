@@ -1,0 +1,8 @@
+### Theory: TCP Binding & Port Reuse
+
+In BSD socket APIs (POSIX), closing a socket typically transitions the TCP state to `TIME_WAIT` (usually 30-120 seconds).
+
+Without setting `SO_REUSEADDR` (`net.ListenConfig.Control` in Go, or `setsockopt` in Python), subsequent immediate server restarts will fail with:
+`bind: address already in use`
+
+By enabling socket address reuse, the operating system permits binding to the port even if existing connections are in `TIME_WAIT`.

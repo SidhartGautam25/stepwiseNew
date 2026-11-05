@@ -1,0 +1,6 @@
+### Specification
+
+- Store key/value in concurrent hash table (`sync.RWMutex` or `sync.Map` in Go, `dict` with threading lock in Python).
+- `SET <key> <val>` -> `+OK\r\n`.
+- `GET <key>` -> `$<len>\r\n<val>\r\n` (present) or `$-1\r\n` (absent).
+- Push to GitHub for verification.

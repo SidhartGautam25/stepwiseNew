@@ -1,0 +1,6 @@
+### Specification
+
+- Parse RESP array: `*1\r\n$4\r\nPING\r\n` (case-insensitive).
+- Reply with RESP Simple String: `+PONG\r\n`.
+- Keep connection open across commands until client EOF.
+- Push to GitHub for verification.

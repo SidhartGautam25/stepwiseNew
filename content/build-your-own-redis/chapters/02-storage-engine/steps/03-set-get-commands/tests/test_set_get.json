@@ -1,0 +1,31 @@
+[
+  {
+    "id": "test_set_and_get",
+    "name": "SET and GET Flow",
+    "type": "resp",
+    "target": "127.0.0.1:6379",
+    "send_series": [
+      { "send": "*3\r\n$3\r\nSET\r\n$3\r\nfoo\r\n$3\r\nbar\r\n", "expect": "+OK\r\n" },
+      { "send": "*2\r\n$3\r\nGET\r\n$3\r\nfoo\r\n", "expect": "$3\r\nbar\r\n" }
+    ],
+    "timeout_ms": 2000
+  },
+  {
+    "id": "test_get_nonexistent_key",
+    "name": "GET Non-existent Key",
+    "type": "resp",
+    "target": "127.0.0.1:6379",
+    "send": "*2\r\n$3\r\nGET\r\n$7\r\nmissing\r\n",
+    "expect": "$-1\r\n",
+    "timeout_ms": 2000
+  },
+  {
+    "id": "test_concurrent_clients",
+    "name": "Concurrent Read/Write",
+    "type": "concurrent_resp",
+    "target": "127.0.0.1:6379",
+    "clients": 5,
+    "operations_per_client": 10,
+    "timeout_ms": 5000
+  }
+]

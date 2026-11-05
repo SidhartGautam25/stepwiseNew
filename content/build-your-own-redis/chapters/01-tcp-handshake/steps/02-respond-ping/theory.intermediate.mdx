@@ -1,0 +1,16 @@
+### Theory: Bulk Strings and Framing
+
+In RESP2, commands sent by redis-cli and official drivers are always framed as Arrays (`*<count>\r\n`) of Bulk Strings (`$<length>\r\n<payload>\r\n`).
+
+For example, `PING` is framed as:
+```
+*1\r\n
+$4\r\n
+PING\r\n
+```
+
+Simple Strings are framed with a leading `+` and CRLF:
+```
++PONG\r\n
+```
+Because Simple Strings cannot contain binary null bytes or CRLF characters, they are ideal for lightweight status confirmations.

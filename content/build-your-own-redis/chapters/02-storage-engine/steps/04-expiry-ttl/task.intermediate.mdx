@@ -1,0 +1,11 @@
+### Your Task (Intermediate)
+
+Add TTL expiration support to `SET` using the `PX` modifier.
+
+- Parse optional arguments in `SET`:
+  `SET <key> <val> [px <milliseconds>]` (case-insensitive flag).
+- Associate an expiration deadline (`time.Now().Add(duration)`) with the key record.
+- Implement passive eviction on `GET`:
+  - When accessing a key whose deadline has passed, evict the entry and return `$-1\r\n`.
+- Ensure re-setting a key without `PX` clears any previous expiration timer.
+- Push to GitHub for verification.

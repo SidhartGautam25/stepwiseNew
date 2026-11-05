@@ -1,0 +1,13 @@
+### Your Task (Intermediate)
+
+Implement thread-safe in-memory key-value storage for `SET` and `GET`.
+
+- Maintain a thread-safe map or synchronized data structure across client connections.
+- Support `SET <key> <value>`:
+  - Store key-value mapping.
+  - Return Simple String `+OK\r\n`.
+- Support `GET <key>`:
+  - If present, return Bulk String `$<length>\r\n<value>\r\n`.
+  - If key does not exist, return RESP Null Bulk String `$-1\r\n`.
+- Ensure multiple goroutines or threads can execute operations concurrently.
+- Push to GitHub for verification.

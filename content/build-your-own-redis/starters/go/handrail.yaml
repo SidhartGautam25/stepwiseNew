@@ -1,0 +1,14 @@
+version: "1.0"
+language: "go"
+build: "go build -o /tmp/redis-server app/main.go"
+run: "/tmp/redis-server"
+platforms:
+  windows:
+    build: "go build -o bin/redis-server.exe app/main.go"
+    run: "bin/redis-server.exe"
+  linux:
+    build: "go build -o bin/redis-server app/main.go"
+    run: "bin/redis-server"
+  darwin:
+    build: "go build -o bin/redis-server app/main.go"
+    run: "bin/redis-server"

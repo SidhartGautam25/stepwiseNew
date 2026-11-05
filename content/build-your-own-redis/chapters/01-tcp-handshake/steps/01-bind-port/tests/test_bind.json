@@ -1,0 +1,18 @@
+[
+  {
+    "id": "test_tcp_bind_port_6379",
+    "name": "TCP Handshake",
+    "type": "tcp",
+    "target": "127.0.0.1:6379",
+    "action": "connect",
+    "timeout_ms": 2000
+  },
+  {
+    "id": "test_tcp_reuse_port",
+    "name": "Port Reusability",
+    "type": "tcp",
+    "target": "127.0.0.1:6379",
+    "action": "reconnect",
+    "timeout_ms": 2000
+  }
+]

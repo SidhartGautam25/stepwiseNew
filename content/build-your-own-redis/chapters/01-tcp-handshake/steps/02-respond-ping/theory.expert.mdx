@@ -1,0 +1,6 @@
+### RESP2 Framing Specification
+
+- Array framing: `*<multibulk-count>\r\n`.
+- Bulk string framing: `$<length>\r\n<data>\r\n`.
+- Simple string framing: `+<status>\r\n`.
+- Terminating delimiter: `\r\n` (CRLF / ASCII 13 + 10).

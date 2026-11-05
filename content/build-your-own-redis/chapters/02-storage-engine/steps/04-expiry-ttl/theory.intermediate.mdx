@@ -1,0 +1,18 @@
+### Theory: Expiration Mechanics in In-Memory Engines
+
+Storing absolute deadlines rather than remaining durations eliminates continuous countdown computations.
+
+Key struct representation:
+```go
+type Item struct {
+  Value     string
+  ExpiresAt *time.Time // nil indicates persistent key
+}
+```
+
+By recording `time.Now().Add(time.Duration(ms) * time.Millisecond)`, passive eviction reduces to a monotonic time comparison:
+```go
+if item.ExpiresAt != nil && time.Now().After(*item.ExpiresAt) {
+  // Evict key
+}
+```

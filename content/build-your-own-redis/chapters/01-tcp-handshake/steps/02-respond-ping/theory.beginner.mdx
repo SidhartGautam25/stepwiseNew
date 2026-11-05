@@ -1,0 +1,12 @@
+### Theory: Redis Serialization Protocol (RESP)
+
+Redis uses a text-based, binary-safe protocol called RESP.
+
+Every RESP element starts with a special prefix character:
+- `+` : Simple String (e.g. `+PONG\r\n`)
+- `-` : Simple Error (e.g. `-ERR unknown command\r\n`)
+- `:` : Integer (e.g. `:1000\r\n`)
+- `$` : Bulk String with length header (e.g. `$4\r\nPING\r\n`)
+- `*` : Array of elements (e.g. `*1\r\n$4\r\nPING\r\n`)
+
+Every line is terminated by CRLF (`\r\n`).

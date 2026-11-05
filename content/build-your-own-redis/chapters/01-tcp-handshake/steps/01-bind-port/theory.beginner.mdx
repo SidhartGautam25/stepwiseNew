@@ -1,0 +1,9 @@
+### Theory: How TCP Sockets Work
+
+A network socket is an endpoint for sending and receiving data over a computer network. 
+
+When you run a server:
+1. **Socket creation**: The operating system allocates network resources.
+2. **Bind**: You attach your socket to a specific IP address and port number (e.g. `6379`).
+3. **Listen**: The OS queues incoming connection requests.
+4. **Accept**: Your application accepts a connection and receives a dedicated connection object to communicate with that specific client.

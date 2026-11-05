@@ -1,0 +1,22 @@
+### Hints (Intermediate)
+
+- Go:
+  ```go
+  buf := make([]byte, 1024)
+  for {
+    n, err := conn.Read(buf)
+    if err != nil { break }
+    if strings.Contains(strings.ToUpper(string(buf[:n])), "PING") {
+      conn.Write([]byte("+PONG\r\n"))
+    }
+  }
+  ```
+- Python:
+  ```python
+  while True:
+      data = conn.recv(1024)
+      if not data:
+          break
+      if b"PING" in data.upper():
+          conn.sendall(b"+PONG\r\n")
+  ```

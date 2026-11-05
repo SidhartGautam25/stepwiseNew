@@ -1,0 +1,17 @@
+# Build Your Own Redis
+
+Redis is the world's most popular in-memory data store, powering real-time caching, session management, and message queuing across modern distributed systems.
+
+In this workshop, you will demystify how Redis works by constructing a lightweight, protocol-compliant Redis clone entirely from scratch in your own editor.
+
+### What We Will Build
+Across 2 chapters and 4 sequential steps, you will construct:
+1. **TCP Socket Server**: Listen on port 6379, accept inbound connections, and manage connection lifecycles.
+2. **RESP Protocol Parser**: Parse incoming Redis serialization protocol arrays and serialize simple string and error responses.
+3. **In-Memory Storage Engine**: Store key-value mappings safely across concurrent clients.
+4. **Key Expiration & TTL**: Support `PX` arguments on `SET` and reject expired keys on `GET`.
+
+### Learning Approach
+- **No in-browser playground**: You will clone a repository, edit files with your own IDE and tooling, and push to GitHub.
+- **GitHub Actions Verification**: Our verification engine will execute black-box protocol test suites against your running process and report official verdicts in real time.
+- **Adaptive Level Control**: At any moment during a step, you can toggle between **Beginner**, **Intermediate**, and **Expert** depth.

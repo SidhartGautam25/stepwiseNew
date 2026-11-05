@@ -1,0 +1,11 @@
+### Theory: Concurrency & RESP Null Values
+
+In RESP, absence of data is represented by Null Bulk String:
+```
+$-1\r\n
+```
+This is distinct from an empty string (`$0\r\n\r\n`).
+
+To avoid data races in concurrent multi-client servers:
+- Readers-Writer locks (`sync.RWMutex`) allow multiple concurrent readers (`RLock`) while ensuring exclusive access for writes (`Lock`).
+- This design scales high-read caching workloads effectively.

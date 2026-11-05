@@ -1,0 +1,8 @@
+### Theory: Key-Value In-Memory Storage
+
+A key-value store functions like an associative array or dictionary.
+
+When multiple clients connect simultaneously:
+- Each client communicates on a separate thread or coroutine.
+- If two clients read and write to the same dictionary without synchronization, race conditions or program crashes can occur.
+- You must synchronize access using mutexes (mutual exclusion locks) to protect shared data.

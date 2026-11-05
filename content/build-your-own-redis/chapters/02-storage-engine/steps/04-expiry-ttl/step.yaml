@@ -1,0 +1,12 @@
+title: "Key Expiration with PX"
+global_order: 4
+tests:
+  - test_id: "test_set_with_px"
+    description: "SET key val PX 100 sets key and it expires after 100 milliseconds"
+    is_hidden: false
+  - test_id: "test_get_before_and_after_expiry"
+    description: "GET returns value immediately, but returns $-1\r\n after TTL duration elapses"
+    is_hidden: false
+  - test_id: "test_overwrite_ttl"
+    description: "Overwriting an existing key with new SET updates or removes previous expiration"
+    is_hidden: true

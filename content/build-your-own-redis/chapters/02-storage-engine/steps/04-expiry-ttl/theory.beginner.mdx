@@ -1,0 +1,10 @@
+### Theory: Active vs Passive Expiration
+
+How does a database purge stale keys without consuming excessive CPU?
+
+1. **Passive Eviction (Lazy Eviction)**:
+   - When a client queries a key (`GET`), the server checks if the key has expired.
+   - If expired, the server deletes the key immediately and returns null.
+   - Cost: $O(1)$ at access time.
+2. **Active Eviction (Periodic Eviction)**:
+   - A background timer samples random keys with TTLs and purges expired ones to reclaim RAM for keys that are never read again.

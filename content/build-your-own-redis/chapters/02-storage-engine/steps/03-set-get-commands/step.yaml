@@ -1,0 +1,12 @@
+title: "Implement SET and GET"
+global_order: 3
+tests:
+  - test_id: "test_set_and_get"
+    description: "SET foo bar returns +OK\r\n and subsequent GET foo returns $3\r\nbar\r\n"
+    is_hidden: false
+  - test_id: "test_get_nonexistent_key"
+    description: "GET missing_key returns RESP null bulk string $-1\r\n"
+    is_hidden: false
+  - test_id: "test_concurrent_clients"
+    description: "Multiple clients issue SET and GET concurrently without data corruption or deadlocks"
+    is_hidden: true

@@ -1,0 +1,13 @@
+### Your Task (Beginner)
+
+In this final step of the workshop, you will implement key expiration!
+
+1. Update your `SET` command to check for optional arguments: `SET <key> <value> [PX <milliseconds>]`.
+2. If `PX` is present:
+   - Calculate the absolute expiration time: `currentTime + milliseconds`.
+   - Store this timestamp alongside the value.
+3. Update `GET <key>`:
+   - Check if an expiration timestamp exists for the key.
+   - If the current time has passed the expiration time, delete the key from the dictionary and return `$-1\r\n`.
+   - Otherwise, return the value as usual.
+4. Push your solution to GitHub to obtain your final verification badge!

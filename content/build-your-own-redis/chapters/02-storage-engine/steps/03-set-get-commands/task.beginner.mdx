@@ -1,0 +1,12 @@
+### Your Task (Beginner)
+
+Now let's turn your server into a true database! You will add an in-memory dictionary or map to store key-value pairs.
+
+1. Create a dictionary (or hash map) in your program to store strings.
+2. When the client sends `SET <key> <value>`:
+   - Save the key and value in your dictionary.
+   - Reply with `+OK\r\n`.
+3. When the client sends `GET <key>`:
+   - If the key exists, reply with a bulk string containing the value: `$<len>\r\n<val>\r\n`.
+   - If the key does NOT exist, reply with a null bulk string: `$-1\r\n`.
+4. Commit and push your code to GitHub.

@@ -1,0 +1,9 @@
+### Your Task (Intermediate)
+
+Handle the `PING` command using RESP wire encoding.
+
+- Read incoming bytes from accepted TCP connections.
+- Decode commands: A client sends an array containing the single bulk string `PING` (`*1\r\n$4\r\nPING\r\n`).
+- Respond with a RESP Simple String: `+PONG\r\n`.
+- Handle persistent connections (do not close the socket after one command).
+- Push to GitHub for verification.

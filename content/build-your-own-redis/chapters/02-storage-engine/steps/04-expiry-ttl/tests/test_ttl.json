@@ -1,0 +1,34 @@
+[
+  {
+    "id": "test_set_with_px",
+    "name": "SET with PX Expiry",
+    "type": "resp",
+    "target": "127.0.0.1:6379",
+    "send": "*5\r\n$3\r\nSET\r\n$5\r\napple\r\n$6\r\nbanana\r\n$2\r\npx\r\n$3\r\n100\r\n",
+    "expect": "+OK\r\n",
+    "timeout_ms": 2000
+  },
+  {
+    "id": "test_get_before_and_after_expiry",
+    "name": "Passive Expiration on GET",
+    "type": "resp_delay",
+    "target": "127.0.0.1:6379",
+    "initial_send": "*5\r\n$3\r\nSET\r\n$4\r\nplum\r\n$5\r\npeach\r\n$2\r\npx\r\n$2\r\n50\r\n",
+    "initial_expect": "+OK\r\n",
+    "delay_ms": 150,
+    "delayed_send": "*2\r\n$3\r\nGET\r\n$4\r\nplum\r\n",
+    "delayed_expect": "$-1\r\n",
+    "timeout_ms": 2000
+  },
+  {
+    "id": "test_overwrite_ttl",
+    "name": "Overwrite Resets TTL",
+    "type": "resp",
+    "target": "127.0.0.1:6379",
+    "send_series": [
+      { "send": "*5\r\n$3\r\nSET\r\n$1\r\nk\r\n$1\r\nv\r\n$2\r\npx\r\n$2\r\n50\r\n", "expect": "+OK\r\n" },
+      { "send": "*3\r\n$3\r\nSET\r\n$1\r\nk\r\n$2\r\nv2\r\n", "expect": "+OK\r\n" }
+    ],
+    "timeout_ms": 2000
+  }
+]

@@ -1,0 +1,20 @@
+title: "Build Your Own Redis"
+summary: "Build an in-memory key-value database server compliant with the Redis Serialization Protocol (RESP)."
+languages:
+  - "go"
+  - "python"
+difficulty: "Intermediate"
+estimated_time: "4 - 6 hours"
+prerequisites:
+  - "Basic socket programming concepts (TCP/IP)"
+  - "Comfort with binary and string manipulation"
+  - "Familiarity with your chosen programming language (Go or Python)"
+limitations:
+  - "Single-threaded event loop or basic goroutine concurrency model (no cluster or sentinel)"
+  - "Core strings and expiry only (no streams, sorted sets, or pub/sub in this workshop)"
+what_we_build: "You will build a functional Redis-compatible TCP server from scratch. It binds port 6379, decodes RESP wire format, serves concurrent client connections, handles PING, SET, and GET commands, and implements active and passive key expiration."
+what_you_learn:
+  - "How TCP servers handle multiple concurrent network streams"
+  - "How to parse RESP (Redis Serialization Protocol) wire format byte by byte"
+  - "How in-memory hash table storage works under the hood"
+  - "How timestamp-based key expiration (TTL) is managed efficiently"

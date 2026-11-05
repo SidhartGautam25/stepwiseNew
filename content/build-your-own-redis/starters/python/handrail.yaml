@@ -1,0 +1,14 @@
+version: "1.0"
+language: "python"
+build: "python3 -m pip install -r requirements.txt || true"
+run: "python3 app/main.py"
+platforms:
+  windows:
+    build: "pip install -r requirements.txt"
+    run: "python app/main.py"
+  linux:
+    build: "python3 -m pip install -r requirements.txt || true"
+    run: "python3 app/main.py"
+  darwin:
+    build: "python3 -m pip install -r requirements.txt || true"
+    run: "python3 app/main.py"

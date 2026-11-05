@@ -1,0 +1,20 @@
+### Hints (Intermediate)
+
+- Keep the connection accepted in a loop so the process does not terminate immediately.
+- Go:
+  ```go
+  l, err := net.Listen("tcp", "0.0.0.0:6379")
+  if err != nil { log.Fatal(err) }
+  defer l.Close()
+  for {
+    conn, err := l.Accept()
+    if err == nil { conn.Close() }
+  }
+  ```
+- Python:
+  ```python
+  with socket.create_server(("0.0.0.0", 6379), reuse_port=True) as server:
+      while True:
+          conn, _ = server.accept()
+          conn.close()
+  ```

@@ -1,0 +1,25 @@
+### Hints (Intermediate)
+
+- Go:
+  ```go
+  type Entry struct {
+    val string
+    exp time.Time
+    hasExp bool
+  }
+  ```
+- When handling `SET`:
+  ```go
+  if len(args) >= 4 && strings.ToUpper(args[2]) == "PX" {
+    ms, _ := strconv.Atoi(args[3])
+    store[key] = Entry{val: args[1], exp: time.Now().Add(time.Duration(ms)*time.Millisecond), hasExp: true}
+  }
+  ```
+- When handling `GET`:
+  ```go
+  if entry.hasExp && time.Now().After(entry.exp) {
+    delete(store, key)
+    conn.Write([]byte("$-1\r\n"))
+    return
+  }
+  ```
