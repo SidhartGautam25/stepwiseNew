@@ -5,7 +5,7 @@
   "scripts": {
     "build": "tsc -b",
     "start": "node dist/main.js",
-    "dev": "tsc --watch",
+    "dev": "tsx watch src/main.ts",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "clean": "rimraf dist tsconfig.tsbuildinfo",

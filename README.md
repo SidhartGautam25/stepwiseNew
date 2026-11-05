@@ -12,6 +12,7 @@
 4. [Monorepo Structure](#-monorepo-structure)
 5. [Codebase Breakdown](#-codebase-breakdown)
 6. [Getting Started (Development Options)](#-getting-started-development-options)
+   - [⚡ Quick Start (TL;DR)](#-quick-start-tldr)
    - [Option A: Hybrid Local Development (Recommended)](#option-a-hybrid-local-development-recommended)
    - [Option B: Full Docker Compose Environment](#option-b-full-docker-compose-environment)
    - [Option C: Native / Standalone Local Setup](#option-c-native--standalone-local-setup)
@@ -211,6 +212,23 @@ flowchart TD
 
 You can run Handrail locally using any of the three workflows below.
 
+### ⚡ Quick Start (TL;DR)
+To start developing immediately on your local machine:
+
+```bash
+# 1. Start backing services (PostgreSQL, RabbitMQ, Redis, Silo/MinIO)
+docker compose -f infra/docker-compose.yml up -d
+
+# 2. Start all microservices (:4000-:4005) and web app (:3000) concurrently
+pnpm dev
+
+# 3. In another terminal tab, sync workshop content into the database
+pnpm content:sync
+```
+Then open [http://localhost:3000/workshops](http://localhost:3000/workshops) in your browser.
+
+---
+
 ### Prerequisites
 - **Node.js**: v20 or v22+
 - **pnpm**: v10+ (`npm install -g pnpm`)
@@ -235,14 +253,14 @@ cp .env.example .env
 ```bash
 docker compose -f infra/docker-compose.yml up -d
 ```
-*This starts PostgreSQL 16 (creating schemas `catalog`, `starter`, `verification`, `progress`), RabbitMQ (with management UI), Redis 7, and MinIO.*
+*This starts PostgreSQL 16 (creating schemas `catalog`, `starter`, `verification`, `progress`), RabbitMQ (with management UI), Redis 7, and MinIO/Silo.*
 
 #### 3. Install monorepo dependencies
 ```bash
 pnpm install
 ```
 
-#### 4. Generate isolated Prisma clients & run migrations
+#### 4. Generate isolated Prisma clients & run migrations (first time only)
 ```bash
 pnpm --filter catalog-service run prisma:generate
 pnpm --filter starter-service run prisma:generate
@@ -256,19 +274,21 @@ pnpm --filter verification-service prisma migrate dev --name init
 pnpm --filter progress-service prisma migrate dev --name init
 ```
 
-#### 5. Sync workshop content into the catalog database
-```bash
-# Ingest the sample workshop (/content/build-your-own-redis) into PostgreSQL
-curl -X POST http://localhost:4001/internal/content/sync \
-  -H "Content-Type: application/json" \
-  -H "x-internal-token: dev_internal_sync_token_secret"
-```
-
-#### 6. Start all services and the web app in parallel
+#### 5. Start all backend microservices and the web app in parallel
 ```bash
 pnpm dev
 ```
-Open [http://localhost:3000](http://localhost:3000) to view the application.
+*This starts the API Gateway on port `4000`, Catalog Service on `4001`, Starters on `4002`, Verification on `4003`, Progress on `4004`, Realtime on `4005`, and Next.js Web on `3000` with live hot-reloading.*
+
+#### 6. Sync workshop content into the catalog database
+In a second terminal window (while `pnpm dev` is running):
+```bash
+pnpm content:sync
+```
+*(This cross-platform Node script reads `/content`, verifies schemas, and syncs all chapters, steps, tests, and MDX contents across all 3 levels into PostgreSQL without needing `curl` or manual headers).*
+
+#### 7. Open the application
+Navigate to [http://localhost:3000/workshops](http://localhost:3000/workshops) to explore the workshops catalog and start building.
 
 ---
 
