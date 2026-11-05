@@ -1,0 +1,80 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL_VERIFICATION")
+  schemas  = ["verification"]
+}
+
+model RepoLink {
+  id           String      @id @default(uuid())
+  userId       String      @map("user_id")
+  workshopSlug String      @map("workshop_slug")
+  language     String
+  repoId       BigInt      @unique @map("repo_id")
+  repoFullName String      @map("repo_full_name")
+  installationId BigInt    @map("installation_id")
+  createdAt    DateTime    @default(now()) @map("created_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
+  runs         VerifyRun[]
+
+  @@unique([userId, workshopSlug, language])
+  @@map("repo_links")
+  @@schema("verification")
+}
+
+enum RunVerdict {
+  PENDING
+  PASSED
+  FAILED
+
+  @@schema("verification")
+}
+
+model VerifyRun {
+  id             String          @id @default(uuid())
+  repoLinkId     String          @map("repo_link_id")
+  stepSlug       String          @map("step_slug")
+  githubRunId    BigInt          @map("github_run_id")
+  githubAttempt  Int             @map("github_attempt")
+  commitSha      String          @map("commit_sha")
+  nonce          String
+  verdict        RunVerdict      @default(PENDING)
+  createdAt      DateTime        @default(now()) @map("created_at")
+  completedAt    DateTime?       @map("completed_at")
+  repoLink       RepoLink        @relation(fields: [repoLinkId], references: [id], onDelete: Cascade)
+  attempts       VerifyAttempt[]
+
+  @@unique([githubRunId, githubAttempt])
+  @@map("verify_runs")
+  @@schema("verification")
+}
+
+model VerifyAttempt {
+  id          String    @id @default(uuid())
+  runId       String    @map("run_id")
+  testId      String    @map("test_id")
+  passed      Boolean
+  durationMs  Int       @map("duration_ms")
+  errorOutput String?   @map("error_output")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  run         VerifyRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@map("verify_attempts")
+  @@schema("verification")
+}
+
+model WebhookEvent {
+  id          String   @id @default(uuid())
+  deliveryId  String   @unique @map("delivery_id")
+  eventType   String   @map("event_type")
+  payload     Json
+  processed   Boolean  @default(false)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("webhook_events")
+  @@schema("verification")
+}

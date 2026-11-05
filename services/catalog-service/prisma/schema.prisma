@@ -1,0 +1,114 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL_CATALOG")
+  schemas  = ["catalog"]
+}
+
+model Workshop {
+  id            String             @id @default(uuid())
+  slug          String             @unique
+  title         String
+  summary       String
+  difficulty    String
+  estimatedTime String             @map("estimated_time")
+  prerequisites String[]
+  limitations   String[]
+  whatWeBuild   String             @map("what_we_build")
+  whatYouLearn  String[]           @map("what_you_learn")
+  createdAt     DateTime           @default(now()) @map("created_at")
+  updatedAt     DateTime           @updatedAt @map("updated_at")
+  languages     WorkshopLanguage[]
+  chapters      Chapter[]
+
+  @@map("workshops")
+  @@schema("catalog")
+}
+
+model WorkshopLanguage {
+  id         String   @id @default(uuid())
+  workshopId String   @map("workshop_id")
+  language   String
+  workshop   Workshop @relation(fields: [workshopId], references: [id], onDelete: Cascade)
+
+  @@unique([workshopId, language])
+  @@map("workshop_languages")
+  @@schema("catalog")
+}
+
+model Chapter {
+  id         String   @id @default(uuid())
+  workshopId String   @map("workshop_id")
+  slug       String
+  title      String
+  summary    String
+  orderIndex Int      @map("order_index")
+  workshop   Workshop @relation(fields: [workshopId], references: [id], onDelete: Cascade)
+  steps      Step[]
+
+  @@unique([workshopId, slug])
+  @@map("chapters")
+  @@schema("catalog")
+}
+
+model Step {
+  id          String        @id @default(uuid())
+  chapterId   String        @map("chapter_id")
+  slug        String
+  title       String
+  globalOrder Int           @map("global_order")
+  chapter     Chapter       @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  tests       StepTest[]
+  contents    StepContent[]
+
+  @@unique([chapterId, slug])
+  @@unique([globalOrder])
+  @@map("steps")
+  @@schema("catalog")
+}
+
+model StepTest {
+  id          String   @id @default(uuid())
+  stepId      String   @map("step_id")
+  testId      String   @map("test_id")
+  description String
+  isHidden    Boolean  @default(false) @map("is_hidden")
+  step        Step     @relation(fields: [stepId], references: [id], onDelete: Cascade)
+
+  @@unique([stepId, testId])
+  @@map("step_tests")
+  @@schema("catalog")
+}
+
+enum ContentKind {
+  task
+  theory
+  hint
+
+  @@schema("catalog")
+}
+
+enum ContentLevel {
+  beginner
+  intermediate
+  expert
+
+  @@schema("catalog")
+}
+
+model StepContent {
+  id      String       @id @default(uuid())
+  stepId  String       @map("step_id")
+  kind    ContentKind
+  level   ContentLevel
+  mdx     String
+  step    Step         @relation(fields: [stepId], references: [id], onDelete: Cascade)
+
+  @@unique([stepId, kind, level])
+  @@map("step_contents")
+  @@schema("catalog")
+}

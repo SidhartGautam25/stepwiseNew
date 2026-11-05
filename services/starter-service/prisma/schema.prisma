@@ -1,0 +1,26 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL_STARTER")
+  schemas  = ["starter"]
+}
+
+model StarterTemplate {
+  id           String   @id @default(uuid())
+  workshopSlug String   @map("workshop_slug")
+  language     String
+  s3Key        String   @map("s3_key")
+  checksum     String
+  fileSize     Int      @map("file_size")
+  version      String   @default("1.0.0")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@unique([workshopSlug, language, version])
+  @@map("starter_templates")
+  @@schema("starter")
+}

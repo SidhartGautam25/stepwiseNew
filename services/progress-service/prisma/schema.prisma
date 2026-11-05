@@ -1,0 +1,45 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL_PROGRESS")
+  schemas  = ["progress"]
+}
+
+enum StepStatus {
+  LOCKED
+  AVAILABLE
+  COMPLETED
+
+  @@schema("progress")
+}
+
+model Enrollment {
+  id           String         @id @default(uuid())
+  userId       String         @map("user_id")
+  workshopSlug String         @map("workshop_slug")
+  language     String
+  enrolledAt   DateTime       @default(now()) @map("enrolled_at")
+  steps        StepProgress[]
+
+  @@unique([userId, workshopSlug, language])
+  @@map("enrollments")
+  @@schema("progress")
+}
+
+model StepProgress {
+  id           String     @id @default(uuid())
+  enrollmentId String     @map("enrollment_id")
+  stepSlug     String     @map("step_slug")
+  globalOrder  Int        @map("global_order")
+  status       StepStatus @default(LOCKED)
+  completedAt  DateTime?  @map("completed_at")
+  enrollment   Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+
+  @@unique([enrollmentId, stepSlug])
+  @@map("step_progress")
+  @@schema("progress")
+}
