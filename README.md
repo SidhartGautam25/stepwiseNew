@@ -409,3 +409,4 @@ The linter strictly enforces:
   - Real-time SSE feedback stream and automated step progression unlocking.
 - [ ] **Phase 2 (Future): Go Cobra CLI**
   - Standalone binary wrapping `/tools/runner` for offline local testing (`handrail test`).
+
