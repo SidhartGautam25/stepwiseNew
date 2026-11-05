@@ -57,3 +57,4 @@ export function WorkshopCard({ workshop }: WorkshopCardProps) {
     </Card>
   );
 }
+

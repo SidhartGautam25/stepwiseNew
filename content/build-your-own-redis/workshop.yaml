@@ -18,3 +18,4 @@ what_you_learn:
   - "How to parse RESP (Redis Serialization Protocol) wire format byte by byte"
   - "How in-memory hash table storage works under the hood"
   - "How timestamp-based key expiration (TTL) is managed efficiently"
+

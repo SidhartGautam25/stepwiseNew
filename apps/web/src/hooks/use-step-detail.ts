@@ -45,3 +45,4 @@ export function useStepDetail(workshopSlug: string, stepSlug: string) {
     tests: step?.tests || [],
   };
 }
+

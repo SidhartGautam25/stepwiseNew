@@ -45,3 +45,4 @@ export class CatalogController {
     return this.catalogService.getStepDetail(slug, stepSlug, level);
   }
 }
+

@@ -26,3 +26,4 @@ Milestone 2 introduces the learning UI and workshop navigation. The user require
 - Clean separation between presentation and data fetching.
 - High component reusability and testability.
 - Easily themes and standardizes button styles, accessibility, and loading states.
+

@@ -34,3 +34,4 @@ export function useLevelPreference(workshopSlug?: string): UseLevelPreferenceRet
     getLevelMetadata: (lvl: ContentLevel) => CONTENT_LEVELS[lvl],
   };
 }
+

@@ -10,3 +10,4 @@ export const SITE_CONFIG = {
     workshops: '/workshops',
   },
 } as const;
+

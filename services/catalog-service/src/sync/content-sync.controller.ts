@@ -34,3 +34,4 @@ export class ContentSyncController {
     return this.syncService.syncFromDirectory(contentDir);
   }
 }
+

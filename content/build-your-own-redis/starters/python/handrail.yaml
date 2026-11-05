@@ -12,3 +12,4 @@ platforms:
   darwin:
     build: "python3 -m pip install -r requirements.txt || true"
     run: "python3 app/main.py"
+

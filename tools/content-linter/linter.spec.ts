@@ -84,3 +84,4 @@ describe('Content Linter', () => {
     expect(result.errors.some((e) => e.includes('Gaps or duplicates in global_order'))).toBe(true);
   });
 });
+

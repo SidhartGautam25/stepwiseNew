@@ -8,3 +8,4 @@ How does a database purge stale keys without consuming excessive CPU?
    - Cost: $O(1)$ at access time.
 2. **Active Eviction (Periodic Eviction)**:
    - A background timer samples random keys with TTLs and purges expired ones to reclaim RAM for keys that are never read again.
+

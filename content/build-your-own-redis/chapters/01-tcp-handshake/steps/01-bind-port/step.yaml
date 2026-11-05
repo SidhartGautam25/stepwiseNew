@@ -7,3 +7,4 @@ tests:
   - test_id: "test_tcp_reuse_port"
     description: "Server enables SO_REUSEADDR to avoid address in use errors during rapid restarts"
     is_hidden: true
+

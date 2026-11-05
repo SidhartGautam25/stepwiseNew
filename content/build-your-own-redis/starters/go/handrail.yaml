@@ -12,3 +12,4 @@ platforms:
   darwin:
     build: "go build -o bin/redis-server app/main.go"
     run: "bin/redis-server"
+

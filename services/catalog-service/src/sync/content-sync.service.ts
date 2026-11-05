@@ -210,3 +210,4 @@ export class ContentSyncService {
     return { slug, title: workshopYaml.title, status: 'synced' };
   }
 }
+

@@ -126,3 +126,4 @@ export const ContentSyncWorkshopSchema = z.object({
   chapters: z.array(ContentSyncChapterSchema),
 });
 export type ContentSyncWorkshopDto = z.infer<typeof ContentSyncWorkshopSchema>;
+

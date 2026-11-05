@@ -33,3 +33,4 @@ export const CONTENT_LEVELS: Record<ContentLevel, LevelMetadata> = {
 };
 
 export const LEVEL_LIST: ContentLevel[] = ['beginner', 'intermediate', 'expert'];
+

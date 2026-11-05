@@ -15,3 +15,4 @@ export const API_CONFIG = {
   },
   timeoutMs: 15000,
 } as const;
+

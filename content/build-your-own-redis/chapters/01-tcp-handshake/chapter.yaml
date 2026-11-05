@@ -1,3 +1,4 @@
 title: "TCP Handshake & RESP Basics"
 summary: "Establish a listening TCP socket on port 6379 and respond to incoming PING commands with Redis wire protocol."
 order_index: 1
+

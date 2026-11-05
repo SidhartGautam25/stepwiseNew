@@ -7,3 +7,4 @@ tests:
   - test_id: "test_multiple_pings_single_conn"
     description: "Client sends multiple consecutive PING commands on the same connection"
     is_hidden: true
+

@@ -23,3 +23,4 @@ export function useWorkshopOverview(slug: string) {
     refetch: query.refetch,
   };
 }
+

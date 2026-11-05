@@ -21,3 +21,4 @@ export function useWorkshops() {
     refetch: query.refetch,
   };
 }
+
