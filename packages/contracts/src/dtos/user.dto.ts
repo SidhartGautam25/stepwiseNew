@@ -16,3 +16,4 @@ export const AuthUserHeaderSchema = z.object({
 });
 
 export type AuthUserHeaders = z.infer<typeof AuthUserHeaderSchema>;
+

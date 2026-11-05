@@ -102,3 +102,4 @@ export function setupStaticProxies(app: any, verifier: JwtVerifierService) {
     app.use(route.path, authMiddleware, proxy);
   });
 }
+

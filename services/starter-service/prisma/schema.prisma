@@ -24,3 +24,4 @@ model StarterTemplate {
   @@map("starter_templates")
   @@schema("starter")
 }
+

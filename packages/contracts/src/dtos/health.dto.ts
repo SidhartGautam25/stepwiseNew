@@ -9,3 +9,4 @@ export const HealthResponseSchema = z.object({
 });
 
 export type HealthResponseDto = z.infer<typeof HealthResponseSchema>;
+

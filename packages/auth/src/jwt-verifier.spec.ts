@@ -54,3 +54,4 @@ describe('JwtVerifierService', () => {
     await expect(verifier.verifyToken(token)).rejects.toThrow();
   });
 });
+

@@ -30,3 +30,4 @@ describe('Contracts', () => {
     expect(parsed.status).toBe('ok');
   });
 });
+

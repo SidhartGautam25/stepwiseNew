@@ -78,3 +78,4 @@ model WebhookEvent {
   @@map("webhook_events")
   @@schema("verification")
 }
+

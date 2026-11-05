@@ -112,3 +112,4 @@ model StepContent {
   @@map("step_contents")
   @@schema("catalog")
 }
+

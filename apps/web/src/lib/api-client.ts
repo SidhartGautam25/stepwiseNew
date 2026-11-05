@@ -32,3 +32,4 @@ export async function apiRequest<T>(
 export async function fetchMe(token: string): Promise<UserDto> {
   return apiRequest<UserDto>('/v1/me', { method: 'GET' }, token);
 }
+

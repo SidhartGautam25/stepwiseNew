@@ -72,3 +72,4 @@ describe('API Gateway Integration Tests', () => {
     expect(res.body.email).toBe(email);
   });
 });
+

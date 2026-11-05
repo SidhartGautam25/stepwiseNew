@@ -38,3 +38,4 @@ describe('CorrelationIdMiddleware', () => {
     expect(res.headers[CORRELATION_ID_HEADER]).toBe('existing-corr-id-1234');
   });
 });
+
