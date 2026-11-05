@@ -1,9 +1,14 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { useAuth } from '../context/auth-context';
-import { useUIStore } from '../stores/ui-store';
+import { useLevelPreference } from '../hooks/use-level-preference';
 import { fetchMe } from '../lib/api-client';
+import { Button } from '../components/ui/Button';
+import { Badge } from '../components/ui/Badge';
+import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card';
+import { LevelSwitcher } from '../components/workshop/LevelSwitcher';
 import type { UserDto } from '@app/contracts';
 
 interface ServiceStatus {
@@ -15,7 +20,7 @@ interface ServiceStatus {
 
 export default function HomePage() {
   const { user, token, setDevToken } = useAuth();
-  const { globalLevel } = useUIStore();
+  const { level, metadata } = useLevelPreference();
   const [profile, setProfile] = useState<UserDto | null>(null);
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileError, setProfileError] = useState<string | null>(null);
@@ -46,14 +51,11 @@ export default function HomePage() {
   };
 
   const handleSimulateDevToken = async () => {
-    // Generates an HS256 signed test token using the default dev secret
-    // Allows local testing of protected /v1/me without requiring external Supabase cloud setup
     const response = await fetch('/api/dev-token').catch(() => null);
     if (response && response.ok) {
       const { token: devToken, user: devUser } = await response.json();
       setDevToken(devToken, devUser);
     } else {
-      // Fallback dev mock token
       const mockId = '550e8400-e29b-41d4-a716-446655440000';
       setDevToken('mock-jwt-token', {
         id: mockId,
@@ -85,145 +87,158 @@ export default function HomePage() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 py-2">
       {/* Hero */}
-      <section className="bg-slate-900 border border-slate-800 rounded-2xl p-8 relative overflow-hidden">
-        <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="max-w-2xl">
-          <span className="inline-block px-3 py-1 bg-emerald-950 text-emerald-400 border border-emerald-800 rounded-full text-xs font-semibold uppercase tracking-wider mb-4">
-            Milestone 1 — Foundation
-          </span>
+      <section className="bg-slate-900/80 border border-slate-800 rounded-3xl p-8 sm:p-10 relative overflow-hidden">
+        <div className="absolute top-0 right-0 -mr-16 -mt-16 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="max-w-2xl space-y-4">
+          <Badge variant="emerald">Milestone 2 — Content & Learning UI</Badge>
           <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
             Guided learn-by-building platform for engineers.
           </h1>
-          <p className="mt-3 text-base text-slate-400">
+          <p className="text-sm sm:text-base text-slate-400 leading-relaxed">
             Work locally in your favorite editor. Push to GitHub for official server-computed
-            verdicts. Real-time feedback streamed directly to your browser.
+            verdicts. Switch depth levels live between Beginner, Intermediate, and Expert.
           </p>
-          <div className="mt-6 flex flex-wrap gap-4 items-center">
-            <div className="text-xs text-slate-400 bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700">
-              Active Content Depth: <span className="font-semibold text-emerald-400 uppercase">{globalLevel}</span>
-            </div>
-            <button
-              onClick={checkHealth}
-              className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-lg border border-slate-700 transition"
-            >
-              Probe Services Health
-            </button>
+
+          <div className="pt-2 flex flex-wrap gap-4 items-center">
+            <Link href="/workshops">
+              <Button variant="primary" size="md">
+                Browse Workshops →
+              </Button>
+            </Link>
+            <Button variant="outline" size="md" onClick={checkHealth}>
+              Probe Microservices Health
+            </Button>
           </div>
         </div>
       </section>
 
+      {/* Level Preference Card */}
+      <Card className="bg-slate-900/50">
+        <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <CardTitle className="text-lg">Adaptive Content Depth</CardTitle>
+            <p className="text-xs text-slate-400">
+              Persisted in client storage and applied live across all steps and theory.
+            </p>
+          </div>
+          <LevelSwitcher showDescription />
+        </CardHeader>
+      </Card>
+
       {/* Grid: Auth & Protected Endpoint Verification */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Auth & Session State */}
-        <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-6">
-          <h2 className="text-lg font-bold text-white mb-2 flex items-center justify-between">
-            <span>Supabase Authentication</span>
-            <span
-              className={`text-xs px-2.5 py-0.5 rounded-full ${
-                user ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' : 'bg-slate-800 text-slate-400'
-              }`}
-            >
+        <Card className="bg-slate-900/50">
+          <CardHeader className="flex items-center justify-between">
+            <CardTitle className="text-base">Supabase Authentication</CardTitle>
+            <Badge variant={user ? 'emerald' : 'default'}>
               {user ? 'Authenticated' : 'Anonymous'}
-            </span>
-          </h2>
-          <p className="text-xs text-slate-400 mb-4">
-            Sessions are managed in React Context and forwarded as Bearer JWT tokens to the API Gateway.
-          </p>
+            </Badge>
+          </CardHeader>
 
-          <div className="bg-slate-950 rounded-lg p-4 font-mono text-xs text-slate-300 space-y-2 border border-slate-800">
-            <div>
-              <span className="text-slate-500">User ID:</span>{' '}
-              <span className="text-emerald-400">{user?.id || 'None'}</span>
-            </div>
-            <div>
-              <span className="text-slate-500">Email:</span>{' '}
-              <span className="text-slate-200">{user?.email || 'None'}</span>
-            </div>
-            <div className="truncate">
-              <span className="text-slate-500">JWT Token:</span>{' '}
-              <span className="text-slate-400">{token ? `${token.substring(0, 28)}...` : 'None'}</span>
-            </div>
-          </div>
+          <CardContent className="space-y-4">
+            <p className="text-xs text-slate-400">
+              Sessions are managed in React Context and forwarded as Bearer JWT tokens to the API Gateway.
+            </p>
 
-          <div className="mt-4 flex gap-2">
+            <div className="bg-slate-950 rounded-xl p-4 font-mono text-xs text-slate-300 space-y-2 border border-slate-800">
+              <div>
+                <span className="text-slate-500">User ID:</span>{' '}
+                <span className="text-emerald-400">{user?.id || 'None'}</span>
+              </div>
+              <div>
+                <span className="text-slate-500">Email:</span>{' '}
+                <span className="text-slate-200">{user?.email || 'None'}</span>
+              </div>
+              <div className="truncate">
+                <span className="text-slate-500">JWT Token:</span>{' '}
+                <span className="text-slate-400">{token ? `${token.substring(0, 28)}...` : 'None'}</span>
+              </div>
+            </div>
+
             {!user && (
-              <button
-                onClick={handleSimulateDevToken}
-                className="text-xs px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-md border border-slate-700 transition"
-              >
+              <Button size="sm" variant="secondary" onClick={handleSimulateDevToken}>
                 Simulate Dev JWT Session
-              </button>
+              </Button>
             )}
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
         {/* Protected GET /v1/me Verification */}
-        <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-6">
-          <h2 className="text-lg font-bold text-white mb-2 flex items-center justify-between">
-            <span>Protected Gateway Endpoint</span>
+        <Card className="bg-slate-900/50">
+          <CardHeader className="flex items-center justify-between">
+            <CardTitle className="text-base">Protected Gateway Endpoint</CardTitle>
             <span className="text-xs font-mono text-emerald-400">GET /v1/me</span>
-          </h2>
-          <p className="text-xs text-slate-400 mb-4">
-            Validates Supabase JWT at Gateway via JWKS / HS256 fallback, rejects forged headers, returns verified profile.
-          </p>
+          </CardHeader>
 
-          <button
-            onClick={handleTestProtectedMe}
-            disabled={profileLoading}
-            className="w-full mb-4 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-medium py-2 px-4 rounded-lg text-xs transition"
-          >
-            {profileLoading ? 'Calling /v1/me...' : 'Call Protected GET /v1/me'}
-          </button>
+          <CardContent className="space-y-4">
+            <p className="text-xs text-slate-400">
+              Validates Supabase JWT at Gateway via JWKS / HS256 fallback, rejects forged headers, returns verified profile.
+            </p>
 
-          {profileError && (
-            <div className="p-3 bg-red-950/50 border border-red-800 rounded-lg text-xs text-red-300 font-mono">
-              {profileError}
-            </div>
-          )}
-
-          {profile && (
-            <div className="bg-slate-950 rounded-lg p-4 font-mono text-xs text-slate-300 space-y-1.5 border border-slate-800">
-              <div className="text-emerald-400 font-semibold mb-1">✓ Server Verified Response:</div>
-              <div>id: {profile.id}</div>
-              <div>email: {profile.email}</div>
-              <div>role: {profile.role}</div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Services Health Status Table */}
-      <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-6">
-        <h2 className="text-lg font-bold text-white mb-4">Microservices Matrix</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          {services.map((svc) => (
-            <div
-              key={svc.name}
-              className="bg-slate-950 border border-slate-800 rounded-lg p-3 flex items-center justify-between"
+            <Button
+              variant="emerald"
+              size="md"
+              className="w-full"
+              isLoading={profileLoading}
+              onClick={handleTestProtectedMe}
             >
-              <div>
-                <div className="text-xs font-semibold text-slate-200">{svc.name}</div>
-                <div className="text-[10px] font-mono text-slate-500">{svc.url}</div>
+              Call Protected GET /v1/me
+            </Button>
+
+            {profileError && (
+              <div className="p-3 bg-red-950/50 border border-red-800 rounded-xl text-xs text-red-300 font-mono">
+                {profileError}
               </div>
-              <div className="flex items-center space-x-1.5">
-                <span
-                  className={`h-2 w-2 rounded-full ${
-                    svc.status === 'ok'
-                      ? 'bg-emerald-500'
-                      : svc.status === 'down'
-                      ? 'bg-red-500'
-                      : 'bg-amber-500 animate-pulse'
-                  }`}
-                />
-                <span className="text-[11px] capitalize text-slate-400">{svc.status}</span>
+            )}
+
+            {profile && (
+              <div className="bg-slate-950 rounded-xl p-4 font-mono text-xs text-slate-300 space-y-1.5 border border-slate-800">
+                <div className="text-emerald-400 font-semibold mb-1">✓ Server Verified Response:</div>
+                <div>id: {profile.id}</div>
+                <div>email: {profile.email}</div>
+                <div>role: {profile.role}</div>
               </div>
-            </div>
-          ))}
-        </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
+
+      {/* Services Matrix */}
+      <Card className="bg-slate-900/50">
+        <CardHeader>
+          <CardTitle className="text-base">Microservices Matrix</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            {services.map((svc) => (
+              <div
+                key={svc.name}
+                className="bg-slate-950 border border-slate-800 rounded-xl p-3.5 flex items-center justify-between"
+              >
+                <div>
+                  <div className="text-xs font-semibold text-slate-200">{svc.name}</div>
+                  <div className="text-[10px] font-mono text-slate-500">{svc.url}</div>
+                </div>
+                <div className="flex items-center space-x-1.5">
+                  <span
+                    className={`h-2 w-2 rounded-full ${
+                      svc.status === 'ok'
+                        ? 'bg-emerald-500'
+                        : svc.status === 'down'
+                        ? 'bg-red-500'
+                        : 'bg-amber-500 animate-pulse'
+                    }`}
+                  />
+                  <span className="text-[11px] capitalize text-slate-400">{svc.status}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
-
