@@ -29,7 +29,7 @@ export function Tabs<T extends string>({
     <div
       className={twMerge(
         clsx(
-          'inline-flex items-center bg-slate-900 border border-slate-800 rounded-xl p-1',
+          'inline-flex items-center gap-1.5 p-1 bg-transparent',
           className,
         ),
       )}
@@ -42,11 +42,11 @@ export function Tabs<T extends string>({
             type="button"
             onClick={() => onChange(tab.id)}
             className={clsx(
-              'flex items-center justify-center font-medium transition-all rounded-lg cursor-pointer select-none',
-              size === 'sm' ? 'px-2.5 py-1 text-xs gap-1.5' : 'px-3.5 py-1.5 text-sm gap-2',
+              'flex items-center justify-center font-mono font-bold border-2 border-black rounded-[2px] transition-all cursor-pointer select-none',
+              size === 'sm' ? 'px-3 py-1 text-xs gap-1.5' : 'px-4 py-1.5 text-sm gap-2',
               isActive
-                ? 'bg-slate-800 text-white shadow-sm border border-slate-700/60'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40',
+                ? 'bg-theme-yellow text-black shadow-none'
+                : 'bg-white hover:bg-slate-100 text-black shadow-hard-sm active:shadow-none',
             )}
           >
             <span>{tab.label}</span>

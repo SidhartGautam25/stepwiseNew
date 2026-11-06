@@ -1,60 +1,83 @@
 import React from 'react';
 import Link from 'next/link';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '../ui/Card';
-import { Badge } from '../ui/Badge';
-import { Button } from '../ui/Button';
+import { NeoCard } from '../ui/NeoCard';
+import { NeoBadge } from '../ui/NeoBadge';
+import { NeoButton } from '../ui/NeoButton';
 import type { WorkshopSummaryDto } from '@app/contracts';
 
 interface WorkshopCardProps {
   workshop: WorkshopSummaryDto;
 }
 
-export function WorkshopCard({ workshop }: WorkshopCardProps) {
-  return (
-    <Card className="hover:border-slate-700 hover:shadow-xl hover:shadow-emerald-950/20 group flex flex-col justify-between">
-      <div>
-        <CardHeader className="space-y-3">
-          <div className="flex items-center justify-between gap-2">
-            <Badge variant="emerald">{workshop.difficulty}</Badge>
-            <span className="text-xs font-mono text-slate-500">
-              {workshop.totalSteps} steps • {workshop.estimatedTime}
-            </span>
-          </div>
-          <CardTitle className="group-hover:text-emerald-400 transition-colors">
-            {workshop.title}
-          </CardTitle>
-          <CardDescription className="line-clamp-2">
-            {workshop.summary}
-          </CardDescription>
-        </CardHeader>
+// Assign unique header accent colors per workshop matching homepage theme
+function getWorkshopHeaderColor(slug: string): string {
+  if (slug.includes('redis')) return 'bg-theme-pink';
+  if (slug.includes('react')) return 'bg-theme-blue';
+  if (slug.includes('git')) return 'bg-theme-yellow';
+  if (slug.includes('npm')) return 'bg-theme-green';
+  return 'bg-theme-yellow';
+}
 
-        <CardContent className="space-y-4">
-          <div>
-            <div className="text-xs font-semibold text-slate-400 mb-2 uppercase tracking-wider">
-              Languages
+export function WorkshopCard({ workshop }: WorkshopCardProps) {
+  const headerColor = getWorkshopHeaderColor(workshop.slug);
+
+  return (
+    <NeoCard
+      shadow="xl"
+      className="group flex flex-col justify-between overflow-hidden hover:translate-x-[-2px] hover:translate-y-[-2px] transition-transform duration-100"
+    >
+      <div>
+        {/* Neo-brutalist Colored Header Bar */}
+        <div
+          className={`${headerColor} border-b-2 border-black px-4 py-2.5 flex items-center justify-between`}
+        >
+          <NeoBadge variant="white" className="text-xs font-bold uppercase py-0.5 px-2">
+            {workshop.difficulty}
+          </NeoBadge>
+          <span className="text-xs font-mono font-bold text-black tracking-tight">
+            {workshop.totalSteps} steps • {workshop.estimatedTime}
+          </span>
+        </div>
+
+        {/* Card Content */}
+        <div className="p-5 sm:p-6 space-y-4">
+          <Link href={`/workshops/${workshop.slug}`}>
+            <h3 className="text-xl font-extrabold text-black group-hover:underline decoration-2 underline-offset-4 tracking-tight transition-all">
+              {workshop.title}
+            </h3>
+          </Link>
+          <p className="text-sm text-theme-muted leading-relaxed line-clamp-3">
+            {workshop.summary}
+          </p>
+
+          <div className="pt-2">
+            <div className="text-[11px] font-mono font-bold text-black uppercase tracking-wider mb-2">
+              Available Starters:
             </div>
             <div className="flex flex-wrap gap-1.5">
               {workshop.languages.map((lang) => (
-                <span
+                <NeoBadge
                   key={lang}
-                  className="px-2 py-0.5 rounded-md text-xs font-mono bg-slate-800 text-slate-300 border border-slate-700/60"
+                  variant="neutral"
+                  className="font-mono text-xs font-bold uppercase py-0.5 px-2"
                 >
                   {lang}
-                </span>
+                </NeoBadge>
               ))}
             </div>
           </div>
-        </CardContent>
+        </div>
       </div>
 
-      <CardFooter className="justify-between">
-        <Link href={`/workshops/${workshop.slug}`} className="w-full">
-          <Button variant="primary" className="w-full">
-            View Workshop Overview →
-          </Button>
+      {/* Card Action Footer */}
+      <div className="p-5 sm:p-6 pt-0">
+        <Link href={`/workshops/${workshop.slug}`} className="block w-full">
+          <NeoButton variant="yellow" size="md" className="w-full">
+            Explore Workshop →
+          </NeoButton>
         </Link>
-      </CardFooter>
-    </Card>
+      </div>
+    </NeoCard>
   );
 }
 

@@ -17,6 +17,9 @@ export const THEME = {
     accentBlue: '#93C5FD',      // Light sky blue for card header bars
     accentGreen: '#4ADE80',     // Vibrant terminal pass green
     accentRed: '#F87171',       // Vibrant terminal fail coral/red
+    accentPurple: '#C4B5FD',    // Soft pastel purple / lavender
+    accentOrange: '#FDBA74',    // Warm pastel orange
+    surfaceMuted: '#EDE8DF',    // Neutral warm paper surface for subheaders
 
     // Surfaces & Code
     terminalBg: '#121212',      // Deep terminal background

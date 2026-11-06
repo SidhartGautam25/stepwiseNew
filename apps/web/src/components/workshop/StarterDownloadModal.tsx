@@ -2,9 +2,8 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Button } from '../ui/Button';
-import { Badge } from '../ui/Badge';
-import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
+import { NeoButton } from '../ui/NeoButton';
+import { NeoBadge } from '../ui/NeoBadge';
 import type { StarterInfoResponseDto } from '@app/contracts';
 
 interface StarterDownloadModalProps {
@@ -58,24 +57,26 @@ export function StarterDownloadModal({
       : `${starterInfo.fileSize} B`;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-2xl bg-slate-900 border border-slate-700/80 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
+      <div className="relative w-full max-w-2xl bg-white border-3 border-black shadow-hard-xl rounded-[2px] overflow-hidden flex flex-col max-h-[90vh]">
         {/* Header */}
-        <div className="p-6 border-b border-slate-800 bg-slate-950/60 flex items-center justify-between">
+        <div className="p-5 border-b-2 border-black bg-theme-yellow flex items-center justify-between">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <Badge variant="emerald">{starterInfo.language.toUpperCase()}</Badge>
-              <span className="text-xs font-mono text-slate-400">
-                Starter Archive • {formattedSize}
+              <NeoBadge variant="white" className="font-mono text-xs font-bold uppercase">
+                {starterInfo.language} STARTER
+              </NeoBadge>
+              <span className="text-xs font-mono font-bold text-black">
+                Archive • {formattedSize}
               </span>
             </div>
-            <h2 className="text-xl font-bold text-white tracking-tight">
+            <h2 className="text-xl font-extrabold text-black tracking-tight">
               Ready to Build: {starterInfo.workshopSlug}
             </h2>
           </div>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-white p-2 rounded-lg hover:bg-slate-800 transition"
+            className="border-2 border-black bg-white hover:bg-slate-100 p-1.5 rounded-[2px] font-bold text-black text-sm cursor-pointer shadow-hard-sm active:shadow-none"
             aria-label="Close modal"
           >
             ✕
@@ -85,13 +86,13 @@ export function StarterDownloadModal({
         {/* Modal Body */}
         <div className="p-6 overflow-y-auto space-y-6">
           {/* Step 1: Download Button */}
-          <div className="p-4 bg-emerald-950/30 border border-emerald-800/60 rounded-xl space-y-3">
-            <div className="flex items-center justify-between flex-wrap gap-2">
+          <div className="p-5 bg-theme-bg border-2 border-black rounded-[2px] space-y-3">
+            <div className="flex items-center justify-between flex-wrap gap-3">
               <div>
-                <h3 className="text-sm font-semibold text-emerald-300">
+                <h3 className="text-sm font-extrabold text-black uppercase tracking-tight">
                   Step 1: Download Starter Package
                 </h3>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-theme-muted mt-0.5">
                   Pre-configured boilerplate with pinned verification workflow.
                 </p>
               </div>
@@ -100,51 +101,50 @@ export function StarterDownloadModal({
                 download={`${starterInfo.workshopSlug}-${starterInfo.language}-starter.zip`}
                 className="inline-block"
               >
-                <Button variant="primary" size="md" className="shadow-lg shadow-emerald-500/20">
+                <NeoButton variant="yellow" size="md">
                   ⬇ Download .zip ({formattedSize})
-                </Button>
+                </NeoButton>
               </a>
             </div>
 
-            <div className="text-[11px] font-mono text-slate-500 flex items-center gap-2 truncate">
-              <span>SHA-256:</span>
-              <span className="text-slate-400 truncate">{starterInfo.checksum}</span>
+            <div className="text-[11px] font-mono font-bold text-black flex items-center gap-2 bg-white p-2 border border-black rounded-[2px] overflow-x-auto">
+              <span className="shrink-0 text-theme-muted uppercase">SHA-256:</span>
+              <span className="truncate">{starterInfo.checksum}</span>
             </div>
           </div>
 
           {/* Step 2: Git Init & Push Instructions */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-slate-200">
-                Step 2: Initialize Git & Push to GitHub
+              <h3 className="text-sm font-extrabold text-black uppercase tracking-tight">
+                Step 2: Initialize Git & Connect Repository
               </h3>
-              <Button
-                variant="outline"
-                size="sm"
+              <button
+                type="button"
                 onClick={copyToClipboard}
-                className="text-xs font-mono h-7 px-2.5"
+                className="px-3 py-1 text-xs font-mono font-bold border-2 border-black rounded-[2px] bg-white hover:bg-slate-100 text-black shadow-hard-sm active:shadow-none cursor-pointer"
               >
                 {copied ? '✓ Copied!' : '📋 Copy Commands'}
-              </Button>
+              </button>
             </div>
 
-            <div className="relative bg-slate-950 rounded-xl p-4 border border-slate-800 font-mono text-xs text-slate-300 leading-relaxed overflow-x-auto">
+            <div className="bg-black text-slate-100 rounded-[2px] p-4 border-2 border-black font-mono text-xs leading-relaxed overflow-x-auto">
               <pre className="whitespace-pre">{terminalCommands}</pre>
             </div>
           </div>
 
-          {/* Verification Engine Callout */}
-          <div className="p-4 bg-slate-950/60 border border-slate-800 rounded-xl space-y-2 text-xs text-slate-400">
-            <div className="flex items-center gap-2 text-slate-200 font-semibold">
-              <span className="text-emerald-400">⚡</span>
-              <span>Automated Verification via GitHub Actions</span>
+          {/* Verification Callout */}
+          <div className="p-4 bg-theme-blue/30 border-2 border-black rounded-[2px] space-y-1.5 text-xs text-black">
+            <div className="flex items-center gap-2 font-extrabold">
+              <span className="text-base">⚡</span>
+              <span className="uppercase font-mono">Automated Verification via GitHub Actions</span>
             </div>
-            <p>
+            <p className="leading-relaxed">
               Your starter repository includes{' '}
-              <code className="text-emerald-300 bg-slate-900 px-1 py-0.5 rounded font-mono">
+              <code className="text-black bg-white px-1.5 py-0.5 rounded-[2px] font-mono font-bold border border-black">
                 .github/workflows/verify.yml
               </code>
-              . Each time you push commits to <code className="text-slate-300 font-mono">main</code>,
+              . Each time you push commits to <code className="font-mono font-bold">main</code>,
               Handrail runs official black-box assertions against your code and updates your
               progress live in the web interface.
             </p>
@@ -152,16 +152,16 @@ export function StarterDownloadModal({
         </div>
 
         {/* Modal Footer */}
-        <div className="p-4 border-t border-slate-800 bg-slate-950/80 flex items-center justify-between">
-          <Button variant="ghost" size="sm" onClick={onClose}>
+        <div className="p-4 border-t-2 border-black bg-theme-bg flex items-center justify-between">
+          <NeoButton variant="ghost" size="sm" onClick={onClose}>
             Close
-          </Button>
+          </NeoButton>
 
           {firstStepUrl && (
             <Link href={firstStepUrl} onClick={onClose}>
-              <Button variant="primary" size="md">
+              <NeoButton variant="yellow" size="md">
                 {firstStepTitle} →
-              </Button>
+              </NeoButton>
             </Link>
           )}
         </div>

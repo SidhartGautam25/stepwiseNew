@@ -10,7 +10,10 @@ export type ButtonVariant =
   | 'outline'
   | 'ghost'
   | 'danger'
-  | 'emerald';
+  | 'emerald'
+  | 'yellow'
+  | 'white'
+  | 'pink';
 
 export type ButtonSize = 'sm' | 'md' | 'lg';
 
@@ -24,23 +27,29 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 
 const variantStyles: Record<ButtonVariant, string> = {
   primary:
-    'bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold shadow-sm hover:shadow active:scale-[0.98]',
-  emerald:
-    'bg-emerald-600 hover:bg-emerald-500 text-white font-medium shadow-sm active:scale-[0.98]',
+    'bg-theme-yellow hover:bg-[#ffe373] text-black border-2 border-black shadow-hard-md active:shadow-hard-sm hover:translate-x-[-1px] hover:translate-y-[-1px] active:translate-x-[1px] active:translate-y-[1px]',
+  yellow:
+    'bg-theme-yellow hover:bg-[#ffe373] text-black border-2 border-black shadow-hard-md active:shadow-hard-sm hover:translate-x-[-1px] hover:translate-y-[-1px] active:translate-x-[1px] active:translate-y-[1px]',
   secondary:
-    'bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 active:scale-[0.98]',
+    'bg-white hover:bg-slate-50 text-black border-2 border-black shadow-hard-md active:shadow-hard-sm hover:translate-x-[-1px] hover:translate-y-[-1px] active:translate-x-[1px] active:translate-y-[1px]',
+  white:
+    'bg-white hover:bg-slate-50 text-black border-2 border-black shadow-hard-md active:shadow-hard-sm hover:translate-x-[-1px] hover:translate-y-[-1px] active:translate-x-[1px] active:translate-y-[1px]',
+  emerald:
+    'bg-theme-green hover:bg-[#3ec772] text-black border-2 border-black shadow-hard-md active:shadow-hard-sm hover:translate-x-[-1px] hover:translate-y-[-1px] active:translate-x-[1px] active:translate-y-[1px]',
+  pink:
+    'bg-theme-pink hover:bg-[#fca5a5] text-black border-2 border-black shadow-hard-md active:shadow-hard-sm hover:translate-x-[-1px] hover:translate-y-[-1px] active:translate-x-[1px] active:translate-y-[1px]',
   outline:
-    'bg-transparent hover:bg-slate-800/60 text-slate-300 border border-slate-700 hover:border-slate-600 active:scale-[0.98]',
+    'bg-transparent hover:bg-black/5 text-black border-2 border-black shadow-hard-sm active:shadow-none hover:translate-x-[-1px] hover:translate-y-[-1px] active:translate-x-[1px] active:translate-y-[1px]',
   ghost:
-    'bg-transparent hover:bg-slate-800 text-slate-400 hover:text-slate-200 active:scale-[0.98]',
+    'bg-transparent hover:bg-black/5 text-black border-2 border-transparent shadow-none',
   danger:
-    'bg-red-600 hover:bg-red-500 text-white font-medium shadow-sm active:scale-[0.98]',
+    'bg-theme-red hover:bg-[#ef4444] text-black border-2 border-black shadow-hard-md active:shadow-hard-sm hover:translate-x-[-1px] hover:translate-y-[-1px] active:translate-x-[1px] active:translate-y-[1px]',
 };
 
 const sizeStyles: Record<ButtonSize, string> = {
-  sm: 'text-xs px-2.5 py-1.5 rounded-md gap-1.5',
-  md: 'text-sm px-4 py-2 rounded-lg gap-2',
-  lg: 'text-base px-6 py-2.5 rounded-xl gap-2.5',
+  sm: 'text-xs px-3.5 py-1.5 font-bold rounded-[2px] gap-1.5',
+  md: 'text-sm px-5 py-2.5 font-bold rounded-[2px] gap-2',
+  lg: 'text-base px-7 py-3 font-extrabold rounded-[2px] gap-2.5',
 };
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
