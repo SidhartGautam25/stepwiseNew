@@ -2,7 +2,7 @@ import { Injectable, NotFoundException, Logger, Inject } from '@nestjs/common';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as yaml from 'yaml';
-import { PrismaService } from './prisma.service.js';
+import { EnrollmentRepository } from './enrollment.repository.js';
 import type {
   EnrollResponseDto,
   WorkshopProgressResponseDto,
@@ -21,14 +21,14 @@ export class EnrollmentService {
   private readonly logger = new Logger(EnrollmentService.name);
 
   constructor(
-    @Inject(PrismaService)
-    private readonly prisma: PrismaService,
+    @Inject(EnrollmentRepository)
+    private readonly enrollmentRepo: EnrollmentRepository,
   ) {}
 
   /**
    * Discovers steps for a workshop across 3 fallback tiers:
    * 1. Catalog service HTTP API
-   * 2. Catalog schema SQL query in PostgreSQL
+   * 2. Catalog schema SQL query in PostgreSQL (via Repository)
    * 3. Local content/ directory parsing
    */
   async getWorkshopSteps(slug: string): Promise<StepSummaryInfo[]> {
@@ -60,27 +60,10 @@ export class EnrollmentService {
       // Fallback to Tier 2
     }
 
-    // 2. Try PostgreSQL catalog schema query
-    try {
-      const rawSteps = await this.prisma.$queryRaw<
-        Array<{ slug: string; title: string; global_order: number }>
-      >`
-        SELECT s.slug, s.title, s.global_order
-        FROM catalog.steps s
-        JOIN catalog.chapters c ON s.chapter_id = c.id
-        JOIN catalog.workshops w ON c.workshop_id = w.id
-        WHERE w.slug = ${slug}
-        ORDER BY s.global_order ASC
-      `;
-      if (rawSteps && rawSteps.length > 0) {
-        return rawSteps.map((s) => ({
-          slug: s.slug,
-          title: s.title,
-          globalOrder: s.global_order,
-        }));
-      }
-    } catch {
-      // Fallback to Tier 3
+    // 2. Try PostgreSQL catalog schema query via repository
+    const catalogSteps = await this.enrollmentRepo.findWorkshopStepsFromCatalog(slug);
+    if (catalogSteps && catalogSteps.length > 0) {
+      return catalogSteps;
     }
 
     // 3. Try reading content/ directory directly
@@ -149,25 +132,11 @@ export class EnrollmentService {
       throw new NotFoundException(`No steps found for workshop "${slug}"`);
     }
 
-    // Upsert Enrollment record
-    let enrollment = await this.prisma.enrollment.findUnique({
-      where: {
-        userId_workshopSlug_language: {
-          userId,
-          workshopSlug: slug,
-          language,
-        },
-      },
-    });
+    // Upsert Enrollment record via repository
+    let enrollment = await this.enrollmentRepo.findEnrollment(userId, slug, language);
 
     if (!enrollment) {
-      enrollment = await this.prisma.enrollment.create({
-        data: {
-          userId,
-          workshopSlug: slug,
-          language,
-        },
-      });
+      enrollment = await this.enrollmentRepo.createEnrollment(userId, slug, language);
     }
 
     // Initialize step progresses
@@ -178,14 +147,7 @@ export class EnrollmentService {
       const step = steps[i];
       const initialStatus: StepStatus = i === 0 ? 'AVAILABLE' : 'LOCKED';
 
-      const existingProgress = await this.prisma.stepProgress.findUnique({
-        where: {
-          enrollmentId_stepSlug: {
-            enrollmentId: enrollment.id,
-            stepSlug: step.slug,
-          },
-        },
-      });
+      const existingProgress = await this.enrollmentRepo.findStepProgress(enrollment.id, step.slug);
 
       let finalStatus: StepStatus = initialStatus;
       let completedAt = null;
@@ -206,13 +168,11 @@ export class EnrollmentService {
           completedAt: completedAt ? completedAt.toISOString() : null,
         });
       } else {
-        const created = await this.prisma.stepProgress.create({
-          data: {
-            enrollmentId: enrollment.id,
-            stepSlug: step.slug,
-            globalOrder: step.globalOrder,
-            status: finalStatus,
-          },
+        const created = await this.enrollmentRepo.createStepProgress({
+          enrollmentId: enrollment.id,
+          stepSlug: step.slug,
+          globalOrder: step.globalOrder,
+          status: finalStatus,
         });
         stepProgressItems.push({
           id: created.id,
@@ -241,17 +201,7 @@ export class EnrollmentService {
    * Get current enrollment and step progress for a user and workshop
    */
   async getWorkshopProgress(slug: string, userId: string): Promise<WorkshopProgressResponseDto> {
-    const enrollment = await this.prisma.enrollment.findFirst({
-      where: {
-        userId,
-        workshopSlug: slug,
-      },
-      include: {
-        steps: {
-          orderBy: { globalOrder: 'asc' },
-        },
-      },
-    });
+    const enrollment = await this.enrollmentRepo.findEnrollmentWithProgress(userId, slug);
 
     if (!enrollment) {
       return {
@@ -263,18 +213,20 @@ export class EnrollmentService {
       };
     }
 
+    const stepsList = (enrollment as any).stepProgresses || (enrollment as any).steps || [];
+
     return {
       isEnrolled: true,
       enrollmentId: enrollment.id,
       workshopSlug: slug,
       language: enrollment.language,
       enrolledAt: enrollment.enrolledAt.toISOString(),
-      steps: enrollment.steps.map((s) => ({
+      steps: stepsList.map((s: any) => ({
         id: s.id,
         stepSlug: s.stepSlug,
         globalOrder: s.globalOrder,
         status: s.status as StepStatus,
-        completedAt: s.completedAt ? s.completedAt.toISOString() : null,
+        completedAt: s.completedAt ? new Date(s.completedAt).toISOString() : null,
       })),
     };
   }

@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException, Inject } from '@nestjs/common';
-import { PrismaService } from '../prisma.service.js';
+import { CatalogRepository } from './catalog.repository.js';
 import type {
   WorkshopSummaryDto,
   WorkshopOverviewDto,
@@ -10,22 +10,12 @@ import type {
 @Injectable()
 export class CatalogService {
   constructor(
-    @Inject(PrismaService)
-    private readonly prisma: PrismaService,
+    @Inject(CatalogRepository)
+    private readonly catalogRepo: CatalogRepository,
   ) {}
 
   async listWorkshops(): Promise<WorkshopSummaryDto[]> {
-    const workshops = await this.prisma.workshop.findMany({
-      include: {
-        languages: true,
-        chapters: {
-          include: {
-            steps: true,
-          },
-        },
-      },
-      orderBy: { createdAt: 'asc' },
-    });
+    const workshops = await this.catalogRepo.findManyWorkshops();
 
     return workshops.map((w) => {
       const totalSteps = w.chapters.reduce((sum, ch) => sum + ch.steps.length, 0);
@@ -43,23 +33,7 @@ export class CatalogService {
   }
 
   async getWorkshopOverview(slug: string): Promise<WorkshopOverviewDto> {
-    const workshop = await this.prisma.workshop.findUnique({
-      where: { slug },
-      include: {
-        languages: true,
-        chapters: {
-          orderBy: { orderIndex: 'asc' },
-          include: {
-            steps: {
-              orderBy: { globalOrder: 'asc' },
-              include: {
-                tests: true,
-              },
-            },
-          },
-        },
-      },
-    });
+    const workshop = await this.catalogRepo.findWorkshopBySlug(slug);
 
     if (!workshop) {
       throw new NotFoundException(`Workshop with slug "${slug}" not found`);
@@ -102,22 +76,7 @@ export class CatalogService {
     stepSlug: string,
     preferredLevel: ContentLevel = 'intermediate',
   ): Promise<StepDetailDto> {
-    const workshop = await this.prisma.workshop.findUnique({
-      where: { slug: workshopSlug },
-      include: {
-        chapters: {
-          include: {
-            steps: {
-              where: { slug: stepSlug },
-              include: {
-                tests: true,
-                contents: true,
-              },
-            },
-          },
-        },
-      },
-    });
+    const workshop = await this.catalogRepo.findStepWithDetails(workshopSlug, stepSlug);
 
     if (!workshop) {
       throw new NotFoundException(`Workshop "${workshopSlug}" not found`);

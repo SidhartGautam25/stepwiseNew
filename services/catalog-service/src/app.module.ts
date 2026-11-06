@@ -3,8 +3,10 @@ import { AuthModule } from '@app/auth';
 import { CorrelationIdMiddleware, HealthController } from '@app/common';
 import { PrismaService } from './prisma.service.js';
 import { HelloController } from './hello.controller.js';
+import { CatalogRepository } from './catalog/catalog.repository.js';
 import { CatalogService } from './catalog/catalog.service.js';
 import { CatalogController } from './catalog/catalog.controller.js';
+import { ContentSyncRepository } from './sync/content-sync.repository.js';
 import { ContentSyncService } from './sync/content-sync.service.js';
 import { ContentSyncController } from './sync/content-sync.controller.js';
 
@@ -16,8 +18,20 @@ import { ContentSyncController } from './sync/content-sync.controller.js';
     CatalogController,
     ContentSyncController,
   ],
-  providers: [PrismaService, CatalogService, ContentSyncService],
-  exports: [PrismaService, CatalogService, ContentSyncService],
+  providers: [
+    PrismaService,
+    CatalogRepository,
+    CatalogService,
+    ContentSyncRepository,
+    ContentSyncService,
+  ],
+  exports: [
+    PrismaService,
+    CatalogRepository,
+    CatalogService,
+    ContentSyncRepository,
+    ContentSyncService,
+  ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

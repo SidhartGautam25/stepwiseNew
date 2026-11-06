@@ -1,16 +1,15 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { StarterService } from './starter.service.js';
 
 describe('StarterService', () => {
   let service: StarterService;
 
   beforeEach(() => {
-    const mockPrisma = {
-      starterTemplate: {
-        upsert: async () => ({ id: 'mock-id' }),
-      },
+    const mockRepo = {
+      upsertStarterTemplate: vi.fn().mockResolvedValue({ id: 'mock-id' }),
+      findStarterTemplate: vi.fn().mockResolvedValue(null),
     } as any;
-    service = new StarterService(mockPrisma);
+    service = new StarterService(mockRepo);
   });
 
   it('builds valid zip archive for build-your-own-redis (go)', async () => {

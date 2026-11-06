@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { EnrollmentService } from './enrollment.service.js';
 
 describe('EnrollmentService', () => {
@@ -10,48 +10,55 @@ describe('EnrollmentService', () => {
     enrollmentsDb = new Map();
     stepProgressDb = new Map();
 
-    const mockPrisma = {
-      enrollment: {
-        findUnique: async ({ where }: any) => {
-          const key = `${where.userId_workshopSlug_language.userId}:${where.userId_workshopSlug_language.workshopSlug}:${where.userId_workshopSlug_language.language}`;
-          return enrollmentsDb.get(key) || null;
-        },
-        create: async ({ data }: any) => {
-          const rec = { id: `enroll-${Date.now()}`, ...data, enrolledAt: new Date() };
-          const key = `${data.userId}:${data.workshopSlug}:${data.language}`;
-          enrollmentsDb.set(key, rec);
-          return rec;
-        },
-        findFirst: async ({ where }: any) => {
-          for (const val of enrollmentsDb.values()) {
-            if (val.userId === where.userId && val.workshopSlug === where.workshopSlug) {
-              const steps: any[] = [];
-              for (const sp of stepProgressDb.values()) {
-                if (sp.enrollmentId === val.id) {
-                  steps.push(sp);
-                }
-              }
-              return { ...val, steps };
-            }
-          }
-          return null;
-        },
+    const mockRepo = {
+      findWorkshopStepsFromCatalog: vi.fn().mockResolvedValue([]),
+      findEnrollment: async (userId: string, workshopSlug: string, language: string) => {
+        const key = `${userId}:${workshopSlug}:${language}`;
+        return enrollmentsDb.get(key) || null;
       },
-      stepProgress: {
-        findUnique: async ({ where }: any) => {
-          const key = `${where.enrollmentId_stepSlug.enrollmentId}:${where.enrollmentId_stepSlug.stepSlug}`;
-          return stepProgressDb.get(key) || null;
-        },
-        create: async ({ data }: any) => {
-          const rec = { id: `sp-${Date.now()}-${Math.random()}`, ...data, completedAt: null };
-          const key = `${data.enrollmentId}:${data.stepSlug}`;
-          stepProgressDb.set(key, rec);
-          return rec;
-        },
+      createEnrollment: async (userId: string, workshopSlug: string, language: string) => {
+        const rec = { id: `enroll-${Date.now()}`, userId, workshopSlug, language, enrolledAt: new Date() };
+        const key = `${userId}:${workshopSlug}:${language}`;
+        enrollmentsDb.set(key, rec);
+        return rec;
+      },
+      findEnrollmentWithProgress: async (userId: string, workshopSlug: string) => {
+        for (const val of enrollmentsDb.values()) {
+          if (val.userId === userId && val.workshopSlug === workshopSlug) {
+            const steps: any[] = [];
+            for (const sp of stepProgressDb.values()) {
+              if (sp.enrollmentId === val.id) {
+                steps.push(sp);
+              }
+            }
+            return { ...val, stepProgresses: steps, steps };
+          }
+        }
+        return null;
+      },
+      findStepProgress: async (enrollmentId: string, stepSlug: string) => {
+        const key = `${enrollmentId}:${stepSlug}`;
+        return stepProgressDb.get(key) || null;
+      },
+      createStepProgress: async (data: any) => {
+        const rec = { id: `sp-${Date.now()}-${Math.random()}`, ...data, completedAt: null };
+        const key = `${data.enrollmentId}:${data.stepSlug}`;
+        stepProgressDb.set(key, rec);
+        return rec;
+      },
+      updateStepProgress: async (id: string, status: any, completedAt?: any) => {
+        for (const [k, v] of stepProgressDb.entries()) {
+          if (v.id === id) {
+            const updated = { ...v, status, completedAt };
+            stepProgressDb.set(k, updated);
+            return updated;
+          }
+        }
+        return null;
       },
     } as any;
 
-    service = new EnrollmentService(mockPrisma);
+    service = new EnrollmentService(mockRepo);
   });
 
   it('discovers workshop steps from content for all workshops', async () => {

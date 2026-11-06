@@ -36,46 +36,53 @@ describe('Milestone 3: Starters, Enrollment & New Workshops Verification', () =>
       enrollmentsMap = new Map();
       stepProgressMap = new Map();
 
-      const mockPrisma = {
-        enrollment: {
-          findUnique: async ({ where }: any) => {
-            const k = `${where.userId_workshopSlug_language.userId}:${where.userId_workshopSlug_language.workshopSlug}:${where.userId_workshopSlug_language.language}`;
-            return enrollmentsMap.get(k) || null;
-          },
-          create: async ({ data }: any) => {
-            const rec = { id: `enroll-${Date.now()}`, ...data, enrolledAt: new Date() };
-            const k = `${data.userId}:${data.workshopSlug}:${data.language}`;
-            enrollmentsMap.set(k, rec);
-            return rec;
-          },
-          findFirst: async ({ where }: any) => {
-            for (const val of enrollmentsMap.values()) {
-              if (val.userId === where.userId && val.workshopSlug === where.workshopSlug) {
-                const steps: any[] = [];
-                for (const sp of stepProgressMap.values()) {
-                  if (sp.enrollmentId === val.id) steps.push(sp);
-                }
-                return { ...val, steps };
-              }
-            }
-            return null;
-          },
+      const mockEnrollmentRepo = {
+        findWorkshopStepsFromCatalog: async () => [],
+        findEnrollment: async (userId: string, workshopSlug: string, language: string) => {
+          const k = `${userId}:${workshopSlug}:${language}`;
+          return enrollmentsMap.get(k) || null;
         },
-        stepProgress: {
-          findUnique: async ({ where }: any) => {
-            const k = `${where.enrollmentId_stepSlug.enrollmentId}:${where.enrollmentId_stepSlug.stepSlug}`;
-            return stepProgressMap.get(k) || null;
-          },
-          create: async ({ data }: any) => {
-            const rec = { id: `sp-${Date.now()}-${Math.random()}`, ...data, completedAt: null };
-            const k = `${data.enrollmentId}:${data.stepSlug}`;
-            stepProgressMap.set(k, rec);
-            return rec;
-          },
+        createEnrollment: async (userId: string, workshopSlug: string, language: string) => {
+          const rec = { id: `enroll-${Date.now()}`, userId, workshopSlug, language, enrolledAt: new Date() };
+          const k = `${userId}:${workshopSlug}:${language}`;
+          enrollmentsMap.set(k, rec);
+          return rec;
+        },
+        findEnrollmentWithProgress: async (userId: string, workshopSlug: string) => {
+          for (const val of enrollmentsMap.values()) {
+            if (val.userId === userId && val.workshopSlug === workshopSlug) {
+              const steps: any[] = [];
+              for (const sp of stepProgressMap.values()) {
+                if (sp.enrollmentId === val.id) steps.push(sp);
+              }
+              return { ...val, stepProgresses: steps, steps };
+            }
+          }
+          return null;
+        },
+        findStepProgress: async (enrollmentId: string, stepSlug: string) => {
+          const k = `${enrollmentId}:${stepSlug}`;
+          return stepProgressMap.get(k) || null;
+        },
+        createStepProgress: async (data: any) => {
+          const rec = { id: `sp-${Date.now()}-${Math.random()}`, ...data, completedAt: null };
+          const k = `${data.enrollmentId}:${data.stepSlug}`;
+          stepProgressMap.set(k, rec);
+          return rec;
+        },
+        updateStepProgress: async (id: string, status: any, completedAt?: any) => {
+          for (const [k, v] of stepProgressMap.entries()) {
+            if (v.id === id) {
+              const updated = { ...v, status, completedAt };
+              stepProgressMap.set(k, updated);
+              return updated;
+            }
+          }
+          return null;
         },
       } as any;
 
-      enrollmentService = new EnrollmentService(mockPrisma);
+      enrollmentService = new EnrollmentService(mockEnrollmentRepo);
     });
 
     const testWorkshops = [
@@ -110,12 +117,11 @@ describe('Milestone 3: Starters, Enrollment & New Workshops Verification', () =>
     let starterService: StarterService;
 
     beforeEach(() => {
-      const mockPrisma = {
-        starterTemplate: {
-          upsert: async () => ({ id: 'mock-template' }),
-        },
+      const mockStarterRepo = {
+        upsertStarterTemplate: async () => ({ id: 'mock-template' }),
+        findStarterTemplate: async () => null,
       } as any;
-      starterService = new StarterService(mockPrisma);
+      starterService = new StarterService(mockStarterRepo);
     });
 
     const starterCases = [

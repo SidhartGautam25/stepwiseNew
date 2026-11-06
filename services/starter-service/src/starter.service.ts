@@ -2,7 +2,7 @@ import { Injectable, NotFoundException, UnauthorizedException, Logger, Inject } 
 import * as crypto from 'crypto';
 import * as fs from 'fs';
 import * as path from 'path';
-import { PrismaService } from './prisma.service.js';
+import { StarterRepository } from './starter.repository.js';
 import { createZipArchive, type ZipEntry } from './zip.util.js';
 import type { StarterInfoResponseDto, StarterInstructionsDto } from '@app/contracts';
 
@@ -21,8 +21,8 @@ export class StarterService {
   >();
 
   constructor(
-    @Inject(PrismaService)
-    private readonly prisma: PrismaService,
+    @Inject(StarterRepository)
+    private readonly starterRepo: StarterRepository,
   ) {}
 
   /**
@@ -168,29 +168,15 @@ export class StarterService {
     const result = { buffer, checksum, fileSize, updatedAt: Date.now() };
     this.archiveCache.set(cacheKey, result);
 
-    // Save or update in database if starter schema is accessible
+    // Save or update in database via repository if starter schema is accessible
     try {
-      await this.prisma.starterTemplate.upsert({
-        where: {
-          workshopSlug_language_version: {
-            workshopSlug,
-            language,
-            version: '1.0.0',
-          },
-        },
-        update: {
-          checksum,
-          fileSize,
-          s3Key: `starters/${workshopSlug}/${language}/starter.zip`,
-        },
-        create: {
-          workshopSlug,
-          language,
-          version: '1.0.0',
-          checksum,
-          fileSize,
-          s3Key: `starters/${workshopSlug}/${language}/starter.zip`,
-        },
+      await this.starterRepo.upsertStarterTemplate({
+        workshopSlug,
+        language,
+        version: '1.0.0',
+        checksum,
+        fileSize,
+        s3Key: `starters/${workshopSlug}/${language}/starter.zip`,
       });
     } catch (err: any) {
       this.logger.debug(`Database record for starter template skipped: ${err.message}`);
