@@ -3,20 +3,19 @@ import { CatalogService } from './catalog/catalog.service.js';
 
 describe('CatalogService', () => {
   let service: CatalogService;
-  let mockPrisma: any;
+  let mockRepo: any;
 
   beforeEach(() => {
-    mockPrisma = {
-      workshop: {
-        findMany: vi.fn(),
-        findUnique: vi.fn(),
-      },
+    mockRepo = {
+      findManyWorkshops: vi.fn(),
+      findWorkshopBySlug: vi.fn(),
+      findStepWithDetails: vi.fn(),
     };
-    service = new CatalogService(mockPrisma);
+    service = new CatalogService(mockRepo);
   });
 
-  it('lists workshops strictly from database and calculates total steps', async () => {
-    mockPrisma.workshop.findMany.mockResolvedValue([
+  it('lists workshops strictly from repository and calculates total steps', async () => {
+    mockRepo.findManyWorkshops.mockResolvedValue([
       {
         id: 'w1',
         slug: 'build-your-own-redis',
@@ -39,8 +38,8 @@ describe('CatalogService', () => {
     expect(result[0].languages).toEqual(['go', 'python']);
   });
 
-  it('retrieves workshop overview with chapters and steps strictly from database', async () => {
-    mockPrisma.workshop.findUnique.mockResolvedValue({
+  it('retrieves workshop overview with chapters and steps strictly from repository', async () => {
+    mockRepo.findWorkshopBySlug.mockResolvedValue({
       id: 'w1',
       slug: 'build-your-own-redis',
       title: 'Build Your Own Redis',
@@ -78,8 +77,8 @@ describe('CatalogService', () => {
     expect(result.chapters[0].steps[0].testCount).toBe(1);
   });
 
-  it('retrieves step details with 3-level content prefetch mapping strictly from database', async () => {
-    mockPrisma.workshop.findUnique.mockResolvedValue({
+  it('retrieves step details with 3-level content prefetch mapping strictly from repository', async () => {
+    mockRepo.findStepWithDetails.mockResolvedValue({
       id: 'w1',
       slug: 'build-your-own-redis',
       chapters: [
