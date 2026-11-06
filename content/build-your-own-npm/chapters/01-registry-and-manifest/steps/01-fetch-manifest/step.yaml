@@ -1,0 +1,7 @@
+title: "Query the Registry API"
+global_order: 1
+tests:
+  - test_id: "test_npm_fetch_manifest"
+    description: "Fetches package manifest from registry and resolves matching version"
+    is_hidden: false
+

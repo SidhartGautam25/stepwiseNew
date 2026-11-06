@@ -1,0 +1,6 @@
+{
+  "test_id": "test_git_cat_file_blob",
+  "name": "Decompress and print blob",
+  "assertion": "cat-file -p reads zlib object and outputs uncompressed payload"
+}
+

@@ -1,0 +1,9 @@
+# Theory: Symbolic References (Intermediate)
+
+Notice the format of `.git/HEAD`:
+`ref: refs/heads/main`
+
+This is called a **symbolic reference** because it does not store a 40-character SHA hash directly; instead, it points to another ref file (`.git/refs/heads/main`).
+When you make a commit on `main`, Git looks up `HEAD`, sees that it points to `refs/heads/main`, and updates the hash inside `refs/heads/main`.
+If you checkout a specific detached commit, `HEAD` directly stores that 40-character commit hash!
+

@@ -1,0 +1,8 @@
+# Theory: Directed Acyclic Graphs (DAG) (Intermediate)
+
+Because every commit references its parent by hash, and hashes are cryptographically unique:
+- Commits form a **Directed Acyclic Graph (DAG)**.
+- Branches are nothing more than moving pointers (named files in `refs/heads/`) that point to a commit node on the DAG.
+- Merges are simply commit objects that list two or more `parent` lines!
+- A root commit (the first commit in a repo) simply has zero `parent` lines.
+

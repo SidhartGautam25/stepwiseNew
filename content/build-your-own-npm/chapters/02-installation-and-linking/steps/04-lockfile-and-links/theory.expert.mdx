@@ -1,0 +1,9 @@
+# Theory: Cross-Platform Execution Shims (Expert)
+
+On Unix, a symbolic link (`ln -s`) combined with a `#!/usr/bin/env node` shebang line allows binaries to execute natively.
+On Windows, symlinks require elevated permissions, and cmd.exe does not parse shebangs.
+Windows package managers address this by generating dual wrapper scripts:
+- `<cmd>.cmd` for Windows Command Prompt.
+- `<cmd>.ps1` for PowerShell.
+- `<cmd>` shell script for Git Bash / WSL.
+

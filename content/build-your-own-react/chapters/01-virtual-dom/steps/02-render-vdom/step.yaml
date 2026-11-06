@@ -1,0 +1,7 @@
+title: "Recursive DOM Renderer"
+global_order: 2
+tests:
+  - test_id: "test_render_elements"
+    description: "render mounts DOM elements with properties into target container"
+    is_hidden: false
+

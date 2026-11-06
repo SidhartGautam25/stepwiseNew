@@ -1,0 +1,9 @@
+# Theory: The Git Object Header (Intermediate)
+
+All loose objects in Git (blobs, trees, commits, tags) share the exact same binary header envelope:
+`[type ASCII] [space 0x20] [size ASCII] [null 0x00] [payload bytes]`
+
+Because size is encoded as ASCII decimal digits before the null terminator:
+- A 10-byte file header is: `blob 10\0` (8 bytes total).
+- The null byte serves as an unambiguous boundary between metadata and raw payload, even if the payload itself contains binary null bytes or image bytes.
+

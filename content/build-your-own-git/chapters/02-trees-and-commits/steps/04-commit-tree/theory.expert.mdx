@@ -1,0 +1,8 @@
+# Theory: Merkle DAG Determinism (Expert)
+
+The immutability of the Git history graph is guaranteed by the inductive property of the Merkle DAG:
+If any file in commit $C_k$ is altered, tree $T_k$ changes.
+If tree $T_k$ changes, the hash of commit $C_k$ changes.
+Consequently, any child commit $C_{k+1}$ referencing parent $C_k$ changes its identity.
+History rewriting (`git rebase` / `filter-branch`) generates an entirely disjoint set of commit hashes.
+

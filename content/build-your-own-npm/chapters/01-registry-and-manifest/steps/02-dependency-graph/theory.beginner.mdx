@@ -1,0 +1,9 @@
+# Theory: Transitive Dependencies and Cycles (Beginner)
+
+When you install a small library like `debug`, it might depend on `ms`. In turn, `ms` might depend on something else!
+This forms a tree of dependencies.
+Sometimes, two packages depend on each other:
+`A -> B -> A` (a circular dependency).
+Without cycle detection, a naive recursive function would call itself forever until the program crashes with a "Maximum call stack size exceeded" error!
+A simple `Set` tracking packages currently being resolved completely prevents this bug.
+

@@ -1,0 +1,6 @@
+{
+  "test_id": "test_render_elements",
+  "name": "render mounts DOM elements",
+  "assertion": "render mounts div and text children to container"
+}
+

@@ -1,0 +1,7 @@
+title: "Deterministic Lockfiles & Bin Linking"
+global_order: 4
+tests:
+  - test_id: "test_npm_lockfile_and_links"
+    description: "Generates reproducible lockfile and symlinks CLI executables to .bin"
+    is_hidden: false
+

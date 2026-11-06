@@ -1,0 +1,6 @@
+{
+  "test_id": "test_use_state_hook",
+  "name": "useState state transitions",
+  "assertion": "useState queues updates and renders new state"
+}
+

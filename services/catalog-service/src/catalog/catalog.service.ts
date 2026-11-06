@@ -138,7 +138,6 @@ export class CatalogService {
     }
 
     // Build all-levels map for instant prefetching & client-side level switching
-    const levels: ContentLevel[] = ['beginner', 'intermediate', 'expert'];
     const allLevelsContent: Record<ContentLevel, { task: string; theory: string; hints?: string }> = {
       beginner: { task: '', theory: '' },
       intermediate: { task: '', theory: '' },
@@ -176,4 +175,3 @@ export class CatalogService {
     };
   }
 }
-

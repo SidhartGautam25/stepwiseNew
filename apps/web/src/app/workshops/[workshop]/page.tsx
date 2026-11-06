@@ -1,29 +1,52 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useWorkshopOverview } from '../../../hooks/use-workshop-overview';
-import { Badge } from '../../../components/ui/Badge';
-import { Button } from '../../../components/ui/Button';
-import { Card, CardHeader, CardTitle, CardContent } from '../../../components/ui/Card';
+import { useEnrollment } from '../../../hooks/use-enrollment';
+import { NeoBadge } from '../../../components/ui/NeoBadge';
+import { NeoButton } from '../../../components/ui/NeoButton';
+import { NeoCard } from '../../../components/ui/NeoCard';
 import { Skeleton } from '../../../components/ui/Skeleton';
+import { StarterDownloadModal } from '../../../components/workshop/StarterDownloadModal';
 
 export default function WorkshopOverviewPage() {
   const params = useParams();
   const workshopSlug = String(params.workshop);
   const { workshop, isLoading, isError, error, refetch } = useWorkshopOverview(workshopSlug);
 
+  const {
+    progress,
+    isEnrolled,
+    enrolledLanguage,
+    enroll,
+    isEnrolling,
+    starterInfo,
+    fetchStarter,
+    isDownloadModalOpen,
+    setDownloadModalOpen,
+  } = useEnrollment(workshopSlug);
+
   const [selectedLanguage, setSelectedLanguage] = useState<string>('go');
+
+  useEffect(() => {
+    if (enrolledLanguage) {
+      setSelectedLanguage(enrolledLanguage);
+    } else if (workshop?.languages && workshop.languages.length > 0) {
+      setSelectedLanguage(workshop.languages[0]);
+    }
+  }, [enrolledLanguage, workshop?.languages]);
 
   if (isLoading) {
     return (
-      <div className="space-y-6 max-w-4xl mx-auto py-6">
-        <Skeleton className="h-10 w-2/3" />
-        <Skeleton className="h-24 w-full rounded-2xl" />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Skeleton className="h-40 rounded-2xl" />
-          <Skeleton className="h-40 rounded-2xl" />
+      <div className="space-y-6 max-w-5xl mx-auto py-6">
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="h-14 w-3/4" />
+        <Skeleton className="h-24 w-full" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Skeleton className="h-44 w-full" />
+          <Skeleton className="h-44 w-full" />
         </div>
       </div>
     );
@@ -31,205 +54,308 @@ export default function WorkshopOverviewPage() {
 
   if (isError || !workshop) {
     return (
-      <div className="max-w-xl mx-auto my-12 p-8 text-center bg-red-950/40 border border-red-800 rounded-2xl space-y-4">
-        <h2 className="text-xl font-bold text-red-200">Workshop Not Found</h2>
-        <p className="text-sm text-red-300">
+      <NeoCard shadow="xl" className="max-w-xl mx-auto my-12 p-8 text-center space-y-4 bg-[#FEE2E2]">
+        <h2 className="text-xl font-extrabold text-black">Workshop Not Found</h2>
+        <p className="text-sm text-theme-muted">
           {error?.message || `Unable to load workshop "${workshopSlug}"`}
         </p>
-        <Button variant="outline" size="sm" onClick={() => refetch()}>
-          Retry
-        </Button>
-      </div>
+        <NeoButton variant="yellow" size="sm" onClick={() => refetch()}>
+          Retry Loading
+        </NeoButton>
+      </NeoCard>
     );
   }
 
   const firstChapter = workshop.chapters[0];
   const firstStep = firstChapter?.steps[0];
+  const firstStepUrl =
+    firstStep && firstChapter
+      ? `/workshops/${workshop.slug}/chapters/${firstChapter.slug}/steps/${firstStep.slug}`
+      : undefined;
+
+  // Compute step statuses from enrollment progress
+  const stepStatusMap: Record<string, string> = {};
+  if (progress?.steps) {
+    for (const s of progress.steps) {
+      stepStatusMap[s.stepSlug] = s.status;
+    }
+  }
+
+  const handleEnrollOrDownload = async () => {
+    if (isEnrolled && starterInfo) {
+      setDownloadModalOpen(true);
+    } else if (isEnrolled) {
+      await fetchStarter(selectedLanguage);
+    } else {
+      await enroll(selectedLanguage);
+    }
+  };
 
   return (
-    <div className="space-y-10 max-w-5xl mx-auto py-6">
-      {/* Hero Header */}
-      <div className="space-y-4 border-b border-slate-800 pb-8">
-        <div className="flex flex-wrap items-center gap-3">
-          <Badge variant="emerald">{workshop.difficulty}</Badge>
-          <span className="text-xs font-mono text-slate-400">
-            {workshop.totalSteps} Total Steps • {workshop.estimatedTime}
-          </span>
+    <div className="space-y-12 max-w-5xl mx-auto py-6">
+      {/* Hero Header Section */}
+      <div className="space-y-6 border-b-2 border-black pb-10">
+        <div>
+          <NeoBadge
+            variant="pink"
+            hasShadow
+            className="font-mono text-xs font-bold px-3 py-1 tracking-tight mb-3"
+          >
+            HANDRAIL WORKSHOP • SYSTEMS ENGINE
+          </NeoBadge>
         </div>
 
-        <h1 className="text-4xl font-extrabold tracking-tight text-white">
+        <div className="flex flex-wrap items-center gap-3">
+          <NeoBadge variant="white" className="font-mono text-xs font-bold uppercase py-0.5 px-2.5">
+            {workshop.difficulty}
+          </NeoBadge>
+          <span className="text-xs font-mono font-bold text-black tracking-tight">
+            {workshop.totalSteps} Total Steps • {workshop.estimatedTime}
+          </span>
+          {isEnrolled && enrolledLanguage && (
+            <NeoBadge variant="yellow" hasShadow className="font-mono text-xs font-bold uppercase">
+              Enrolled ({enrolledLanguage.toUpperCase()})
+            </NeoBadge>
+          )}
+        </div>
+
+        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-black">
           {workshop.title}
         </h1>
-        <p className="text-lg text-slate-400 max-w-3xl leading-relaxed">
+        <p className="text-base sm:text-lg text-theme-muted max-w-3xl leading-relaxed">
           {workshop.summary}
         </p>
 
-        {/* Language Picker & Start CTA */}
-        <div className="pt-4 flex flex-wrap items-center gap-6">
+        {/* Language Picker & Action CTA */}
+        <div className="pt-4 flex flex-col sm:flex-row sm:items-center gap-6">
           <div className="space-y-1.5">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+            <span className="text-xs font-mono font-bold uppercase tracking-wider text-black">
               Select Language Option:
             </span>
             <div className="flex gap-2">
               {workshop.languages.map((lang) => {
                 const isSelected = selectedLanguage === lang;
                 return (
-                  <Button
+                  <button
                     key={lang}
-                    size="sm"
-                    variant={isSelected ? 'emerald' : 'secondary'}
+                    type="button"
                     onClick={() => setSelectedLanguage(lang)}
-                    className="capitalize font-mono"
+                    className={`px-3 py-1.5 text-xs font-mono font-bold border-2 border-black rounded-[2px] uppercase transition-all cursor-pointer ${
+                      isSelected
+                        ? 'bg-theme-yellow text-black shadow-hard-sm'
+                        : 'bg-white hover:bg-slate-100 text-black'
+                    }`}
                   >
                     {lang}
-                  </Button>
+                  </button>
                 );
               })}
             </div>
           </div>
 
-          {firstStep && firstChapter && (
-            <div className="pt-5 sm:pt-0">
-              <Link
-                href={`/workshops/${workshop.slug}/chapters/${firstChapter.slug}/steps/${firstStep.slug}`}
-              >
-                <Button variant="primary" size="lg" className="shadow-lg shadow-emerald-500/20">
-                  Start Step 1: {firstStep.title} →
-                </Button>
+          <div className="pt-2 sm:pt-4 flex flex-wrap items-center gap-4">
+            <NeoButton
+              variant="yellow"
+              size="lg"
+              onClick={handleEnrollOrDownload}
+              disabled={isEnrolling}
+            >
+              {isEnrolling
+                ? 'Preparing Starter...'
+                : isEnrolled
+                ? '⬇ Download Starter Package'
+                : `Enroll & Download Starter (${selectedLanguage.toUpperCase()}) →`}
+            </NeoButton>
+
+            {firstStepUrl && (
+              <Link href={firstStepUrl}>
+                <NeoButton variant="white" size="lg">
+                  Go to Step 1 →
+                </NeoButton>
               </Link>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
 
       {/* Grid: What We Build & What You'll Learn */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="bg-slate-900/50">
-          <CardHeader>
-            <CardTitle className="text-lg">What We Build</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-slate-300 leading-relaxed">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <NeoCard shadow="lg" className="overflow-hidden flex flex-col justify-between">
+          <div>
+            <div className="bg-theme-blue border-b-2 border-black px-5 py-3">
+              <h3 className="font-mono text-xs font-bold uppercase tracking-wider text-black">
+                What We Build
+              </h3>
+            </div>
+            <div className="p-6 text-sm text-black leading-relaxed font-sans">
               {workshop.whatWeBuild}
-            </p>
-          </CardContent>
-        </Card>
+            </div>
+          </div>
+        </NeoCard>
 
-        <Card className="bg-slate-900/50">
-          <CardHeader>
-            <CardTitle className="text-lg">What You Will Learn</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="space-y-2 text-sm text-slate-300">
-              {workshop.whatYouLearn.map((item, idx) => (
-                <li key={idx} className="flex items-start gap-2">
-                  <span className="text-emerald-400 font-bold">✓</span>
-                  <span>{item}</span>
-                </li>
-              ))}
-            </ul>
-          </CardContent>
-        </Card>
+        <NeoCard shadow="lg" className="overflow-hidden flex flex-col justify-between">
+          <div>
+            <div className="bg-theme-yellow border-b-2 border-black px-5 py-3">
+              <h3 className="font-mono text-xs font-bold uppercase tracking-wider text-black">
+                What You Will Learn
+              </h3>
+            </div>
+            <div className="p-6">
+              <ul className="space-y-3 text-sm text-black font-sans">
+                {workshop.whatYouLearn.map((item, idx) => (
+                  <li key={idx} className="flex items-start gap-2.5">
+                    <span className="shrink-0 bg-theme-green text-black border-2 border-black rounded-[2px] font-mono font-bold text-[10px] px-1 py-0.5 leading-none">
+                      ✓
+                    </span>
+                    <span className="leading-snug">{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </NeoCard>
       </div>
 
       {/* Grid: Prerequisites & Limitations */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="bg-slate-900/40">
-          <CardHeader>
-            <CardTitle className="text-lg">Prerequisites</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="space-y-1.5 text-xs text-slate-400">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <NeoCard shadow="md" className="overflow-hidden">
+          <div className="bg-white border-b-2 border-black px-5 py-3">
+            <h3 className="font-mono text-xs font-bold uppercase tracking-wider text-black">
+              Prerequisites
+            </h3>
+          </div>
+          <div className="p-6">
+            <ul className="space-y-2 text-xs text-theme-muted font-sans">
               {workshop.prerequisites.map((p, i) => (
                 <li key={i} className="flex items-center gap-2">
-                  <span className="text-slate-500">•</span>
+                  <span className="text-black font-bold">•</span>
                   <span>{p}</span>
                 </li>
               ))}
             </ul>
-          </CardContent>
-        </Card>
+          </div>
+        </NeoCard>
 
-        <Card className="bg-slate-900/40">
-          <CardHeader>
-            <CardTitle className="text-lg">Limitations & Scope</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="space-y-1.5 text-xs text-slate-400">
+        <NeoCard shadow="md" className="overflow-hidden">
+          <div className="bg-white border-b-2 border-black px-5 py-3">
+            <h3 className="font-mono text-xs font-bold uppercase tracking-wider text-black">
+              Limitations & Scope
+            </h3>
+          </div>
+          <div className="p-6">
+            <ul className="space-y-2 text-xs text-theme-muted font-sans">
               {workshop.limitations.map((l, i) => (
                 <li key={i} className="flex items-center gap-2">
-                  <span className="text-slate-500">•</span>
+                  <span className="text-black font-bold">•</span>
                   <span>{l}</span>
                 </li>
               ))}
             </ul>
-          </CardContent>
-        </Card>
+          </div>
+        </NeoCard>
       </div>
 
       {/* Syllabus: Chapters and Steps */}
       <div className="space-y-6">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight text-white">
-            Workshop Syllabus ({workshop.totalSteps} Steps)
-          </h2>
-          <p className="text-sm text-slate-400">
-            Chapters group steps only. Steps are unlocked sequentially across chapters.
-          </p>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b-2 border-black pb-4">
+          <div>
+            <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-black">
+              Workshop Syllabus ({workshop.totalSteps} Steps)
+            </h2>
+            <p className="text-sm text-theme-muted">
+              Steps are sequential. Complete each step by pushing to GitHub to unlock subsequent steps.
+            </p>
+          </div>
+          {isEnrolled && (
+            <NeoBadge variant="pink" hasShadow className="font-mono text-xs font-bold uppercase self-start sm:self-auto">
+              Progression Active
+            </NeoBadge>
+          )}
         </div>
 
         <div className="space-y-6">
           {workshop.chapters.map((chapter) => (
-            <div
-              key={chapter.id}
-              className="border border-slate-800 rounded-2xl bg-slate-900/30 overflow-hidden"
-            >
-              <div className="p-4 bg-slate-900/80 border-b border-slate-800/80 flex items-center justify-between">
+            <NeoCard key={chapter.id} shadow="lg" className="overflow-hidden">
+              {/* Chapter Header */}
+              <div className="bg-theme-yellow border-b-2 border-black p-4 sm:px-6 flex items-center justify-between">
                 <div>
-                  <span className="text-[11px] font-mono text-emerald-400 uppercase">
+                  <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-black">
                     Chapter {chapter.orderIndex}
                   </span>
-                  <h3 className="text-base font-bold text-slate-100">
+                  <h3 className="text-base sm:text-lg font-extrabold text-black">
                     {chapter.title}
                   </h3>
                 </div>
-                <span className="text-xs text-slate-500 font-mono">
+                <NeoBadge variant="white" className="font-mono text-xs font-bold">
                   {chapter.steps.length} Steps
-                </span>
+                </NeoBadge>
               </div>
 
-              <div className="divide-y divide-slate-800/60 p-2">
-                {chapter.steps.map((step) => (
-                  <Link
-                    key={step.id}
-                    href={`/workshops/${workshop.slug}/chapters/${chapter.slug}/steps/${step.slug}`}
-                    className="p-3.5 flex items-center justify-between hover:bg-slate-800/40 rounded-xl transition group"
-                  >
-                    <div className="flex items-center space-x-3">
-                      <span className="h-6 w-6 rounded-md bg-slate-800 text-slate-300 font-mono text-xs flex items-center justify-center font-semibold group-hover:bg-emerald-500 group-hover:text-slate-950 transition">
-                        {step.globalOrder}
-                      </span>
-                      <span className="text-sm font-medium text-slate-200 group-hover:text-white transition">
-                        {step.title}
-                      </span>
-                    </div>
+              {/* Steps List */}
+              <div className="divide-y-2 divide-black">
+                {chapter.steps.map((step) => {
+                  const status =
+                    stepStatusMap[step.slug] ||
+                    (step.globalOrder === 1 ? 'AVAILABLE' : 'LOCKED');
+                  const isLocked = status === 'LOCKED';
 
-                    <div className="flex items-center space-x-3">
-                      <span className="text-xs text-slate-500 font-mono">
-                        {step.testCount} tests
-                      </span>
-                      <span className="text-slate-500 group-hover:text-emerald-400 transition">
-                        →
-                      </span>
+                  return (
+                    <div
+                      key={step.id}
+                      className="p-4 sm:px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-stone-50 transition"
+                    >
+                      <div className="flex items-center space-x-3.5">
+                        <span className="flex items-center justify-center h-7 w-7 rounded-[2px] bg-black text-white text-xs font-mono font-bold border-2 border-black shrink-0">
+                          {step.globalOrder}
+                        </span>
+                        <div>
+                          <div className="text-sm font-bold text-black">
+                            {step.title}
+                          </div>
+                          <div className="text-xs text-theme-muted font-mono">
+                            {step.testCount} automated test{step.testCount === 1 ? '' : 's'}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3 self-end sm:self-auto">
+                        {status === 'COMPLETED' ? (
+                          <NeoBadge variant="pink">Completed ✓</NeoBadge>
+                        ) : status === 'AVAILABLE' ? (
+                          <NeoBadge variant="blue">Available</NeoBadge>
+                        ) : (
+                          <NeoBadge variant="neutral">Locked 🔒</NeoBadge>
+                        )}
+
+                        <Link
+                          href={`/workshops/${workshop.slug}/chapters/${chapter.slug}/steps/${step.slug}`}
+                        >
+                          <NeoButton
+                            variant={isLocked ? 'white' : 'yellow'}
+                            size="sm"
+                            className={isLocked ? 'opacity-80' : ''}
+                          >
+                            View Step →
+                          </NeoButton>
+                        </Link>
+                      </div>
                     </div>
-                  </Link>
-                ))}
+                  );
+                })}
               </div>
-            </div>
+            </NeoCard>
           ))}
         </div>
       </div>
+
+      {/* Starter Download Modal */}
+      <StarterDownloadModal
+        isOpen={isDownloadModalOpen}
+        onClose={() => setDownloadModalOpen(false)}
+        starterInfo={starterInfo}
+        firstStepUrl={firstStepUrl}
+        firstStepTitle={firstStep ? `Start Step 1: ${firstStep.title}` : 'Start Step 1'}
+      />
     </div>
   );
 }
-

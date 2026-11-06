@@ -133,7 +133,10 @@ flowchart TD
 │   ├── auth/                    # Jose Supabase JWT verification (JWKS + HS256 fallback), NestJS guard
 │   └── common/                  # Structured logger, correlation ID middleware, exception filters
 ├── content/                     # Workshop content repository (MDX, YAML, tests, starters)
-│   └── build-your-own-redis/    # Sample workshop: 2 chapters, 4 steps in 3 levels (Go & Python)
+│   ├── build-your-own-redis/    # Build Redis: TCP handshake, RESP protocol, GET/SET, TTL (Go, Python)
+│   ├── build-your-own-react/    # Build React: createElement, VDOM renderer, Concurrent Fiber, useState (TS, JS)
+│   ├── build-your-own-git/      # Build Git: blobs, cat-file, hash-object, tree & commit objects (Go, Python)
+│   └── build-your-own-npm/      # Build npm: registry manifest, dependency resolution, tarballs, lockfile (TS, Go)
 ├── tools/
 │   ├── content-linter/          # Content validator (enforces 3 levels, tests, sequential order)
 │   └── runner/                  # Go black-box test runner package (for actions & phase 2 CLI)
@@ -217,18 +220,20 @@ You can run Handrail locally using any of the three workflows below.
 To start developing immediately on your local machine:
 
 ```bash
-# 1. Start backing services (PostgreSQL, RabbitMQ, Redis, Silo/MinIO)
+# 1. Start backing services (PostgreSQL, RabbitMQ, Redis, MinIO)
 docker compose -f infra/docker-compose.yml up -d
 
-# 2. Push database schemas and create tables across all PostgreSQL schemas
+# 2. Push Prisma database schemas to PostgreSQL
 pnpm db:push
 
-# 3. Start all microservices (:4000-:4005) and web app (:3000) concurrently
-pnpm dev
-
-# 4. In another terminal tab, sync workshop content into the database
+# 3. Populate workshop content from /content into PostgreSQL
 pnpm content:sync
+
+# 4. Start all microservices (:4000-:4005) and web client (:3000)
+pnpm dev
 ```
+> **Note on Content Storage**: Workshop content strictly originates from the PostgreSQL database (`catalog` schema). There is no filesystem fallback in the runtime services. Running `pnpm content:sync` populates all 4 workshops (`build-your-own-redis`, `build-your-own-react`, `build-your-own-git`, `build-your-own-npm`) directly into PostgreSQL so they are immediately queryable.
+
 Then open [http://localhost:3000/workshops](http://localhost:3000/workshops) in your browser.
 
 ---
@@ -429,10 +434,14 @@ The linter strictly enforces:
   - Content linting engine with automated unit tests (`pnpm lint:content`).
   - Hook-based frontend design and atomic UI component library (`Button`, `Badge`, `Card`, `Tabs`, `Skeleton`).
   - Interactive learning pages (`/workshops`, `/workshops/[workshop]`, `/steps/[step]`) with live level switching.
-- [ ] **Milestone 3: Starters & Enrollment**
-  - User enrollment endpoint (`POST /workshops/:slug/enroll`).
-  - Starter packaging and signed S3 URLs in `starter-service`.
-  - Step progression initialization in `progress-service`.
+- [x] **Milestone 3: Starters, Enrollment & Multi-Workshop Support**
+  - User enrollment endpoint (`POST /workshops/:slug/enroll` with language selection).
+  - Step progression initialization in `progress-service` (first step `AVAILABLE`, subsequent steps `LOCKED`).
+  - Starter archive generation with PKZIP 2.0 and HMAC-signed secure download URLs in `starter-service`.
+  - UI download modal with direct signed zip download, SHA-256 checksum, and copyable `git init && git push` instructions.
+  - Multi-workshop architecture across all backend microservices, contracts, and database models.
+  - 4 full production workshops (Redis, React, Git, npm/yarn) with complete 3-level MDX content and test suites.
+  - Dual-mode database content synchronization script (`pnpm content:sync`).
 - [ ] **Milestone 4: Verification Pipeline & Go Runner**
   - Pinned reusable GitHub Actions verification workflow.
   - Strict GitHub OIDC token validation in `verification-service`.

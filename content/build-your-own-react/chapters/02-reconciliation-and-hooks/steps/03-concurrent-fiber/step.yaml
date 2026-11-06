@@ -1,0 +1,7 @@
+title: "Concurrent Fiber Loop"
+global_order: 3
+tests:
+  - test_id: "test_fiber_work_loop"
+    description: "Fiber tree processes units of work and schedules next fiber"
+    is_hidden: false
+

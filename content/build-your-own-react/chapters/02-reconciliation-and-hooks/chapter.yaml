@@ -1,0 +1,4 @@
+title: "Fiber Reconciliation & Hooks"
+summary: "Implement concurrent fiber work loops, deadline time-slicing, and stateful hooks."
+order_index: 2
+

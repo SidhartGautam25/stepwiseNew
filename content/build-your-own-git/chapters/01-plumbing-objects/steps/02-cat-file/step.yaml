@@ -1,0 +1,7 @@
+title: "Read Git Objects (git cat-file)"
+global_order: 2
+tests:
+  - test_id: "test_git_cat_file_blob"
+    description: "cat-file -p decompresses and prints raw blob contents"
+    is_hidden: false
+

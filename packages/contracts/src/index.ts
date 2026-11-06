@@ -2,4 +2,6 @@ export * from './constants.js';
 export * from './dtos/user.dto.js';
 export * from './dtos/health.dto.js';
 export * from './dtos/catalog.dto.js';
+export * from './dtos/progress.dto.js';
+export * from './dtos/starter.dto.js';
 export * from './events/index.js';

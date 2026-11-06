@@ -1,0 +1,12 @@
+# Hints (Intermediate)
+
+Traversing backwards up the fiber tree:
+```js
+let nextFiber = fiber;
+while (nextFiber) {
+  if (nextFiber.sibling) return nextFiber.sibling;
+  nextFiber = nextFiber.parent;
+}
+return null;
+```
+

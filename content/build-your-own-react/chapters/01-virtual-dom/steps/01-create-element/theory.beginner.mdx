@@ -1,0 +1,9 @@
+# Theory: Virtual DOM Basics (Beginner)
+
+Browsers represent HTML documents as trees of DOM nodes. However, real DOM nodes in browsers like Chrome or Firefox are heavy C++ objects with hundreds of internal properties and methods.
+
+Direct DOM manipulation is costly:
+- Every time you change the real DOM, the browser may need to recalculate styles, reflow layout, and repaint pixels.
+- The Virtual DOM is a plain, lightweight JavaScript object that mirrors the real DOM structure in memory.
+- Manipulating JavaScript objects is thousands of times faster than touching the browser's live DOM.
+

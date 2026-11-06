@@ -1,0 +1,12 @@
+# Task: Resolve Dependency Graph (Beginner)
+
+Packages usually depend on other packages (called **transitive dependencies**).
+When a user runs `your_pm resolve <package>`, your tool must construct the full dependency tree.
+
+### Instructions
+1. Given a root package name and version range, resolve its manifest.
+2. Read its `dependencies` dictionary.
+3. For each dependency, recursively resolve its version from the registry.
+4. Maintain a `visited` set of resolved packages (`name@version`) so you do not get stuck in infinite loops if Package A depends on Package B and Package B depends on Package A!
+5. Output the total list of unique packages required.
+

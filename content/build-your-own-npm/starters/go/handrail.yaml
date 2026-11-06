@@ -1,0 +1,15 @@
+version: "1.0"
+language: "go"
+build: "go build -o bin/your_pm app/main.go"
+run: "bin/your_pm"
+platforms:
+  windows:
+    build: "go build -o bin/your_pm.exe app/main.go"
+    run: "bin/your_pm.exe"
+  linux:
+    build: "go build -o bin/your_pm app/main.go"
+    run: "bin/your_pm"
+  darwin:
+    build: "go build -o bin/your_pm app/main.go"
+    run: "bin/your_pm"
+

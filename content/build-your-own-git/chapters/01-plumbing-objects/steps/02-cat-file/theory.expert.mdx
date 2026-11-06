@@ -1,0 +1,6 @@
+# Theory: Loose Object Storage vs Packfiles (Expert)
+
+Loose objects represent individual zlib-deflated streams on POSIX filesystems.
+While simple and concurrent-write friendly, loose objects suffer from inode amplification and lack inter-file delta compression.
+Git handles this during `git gc` by consolidating loose objects into indexed packfiles (`.pack` and `.idx`).
+

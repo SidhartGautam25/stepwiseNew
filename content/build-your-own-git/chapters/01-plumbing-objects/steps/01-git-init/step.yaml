@@ -1,0 +1,7 @@
+title: "Initialize a Git Repository (git init)"
+global_order: 1
+tests:
+  - test_id: "test_git_init_directory_structure"
+    description: "Creates .git directory containing objects, refs/heads, and HEAD file"
+    is_hidden: false
+

@@ -1,0 +1,6 @@
+{
+  "test_id": "test_create_element_simple",
+  "name": "createElement simple element",
+  "assertion": "createElement produces vdom with type and props"
+}
+

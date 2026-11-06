@@ -1,0 +1,15 @@
+version: "1.0"
+language: "go"
+build: "go build -o bin/your_git app/main.go"
+run: "bin/your_git"
+platforms:
+  windows:
+    build: "go build -o bin/your_git.exe app/main.go"
+    run: "bin/your_git.exe"
+  linux:
+    build: "go build -o bin/your_git app/main.go"
+    run: "bin/your_git"
+  darwin:
+    build: "go build -o bin/your_git app/main.go"
+    run: "bin/your_git"
+

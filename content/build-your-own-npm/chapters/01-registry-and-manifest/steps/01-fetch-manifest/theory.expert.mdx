@@ -1,0 +1,7 @@
+# Theory: Packument Optimization (Expert)
+
+Querying full packuments for packages with hundreds of releases (e.g. `lodash` or `@types/node`) can transfer megabytes of unnecessary JSON.
+Modern package managers send:
+`Accept: application/vnd.npm.install-v1+json`
+This instructs the registry edge caches to return an **abbreviated packument**, stripping historical descriptions, readmes, and contributor lists, reducing response sizes by over 90%.
+

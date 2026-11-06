@@ -1,0 +1,15 @@
+version: "1.0"
+language: "javascript"
+build: "npm install || true"
+run: "node src/index.js"
+platforms:
+  windows:
+    build: "npm install || true"
+    run: "node src/index.js"
+  linux:
+    build: "npm install || true"
+    run: "node src/index.js"
+  darwin:
+    build: "npm install || true"
+    run: "node src/index.js"
+

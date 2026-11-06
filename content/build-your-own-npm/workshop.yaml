@@ -1,0 +1,21 @@
+title: "Build Your Own Package Manager"
+summary: "Build an npm/yarn package manager from scratch with registry fetching, topological dependency resolution, tarball extraction, and lockfiles."
+languages:
+  - "typescript"
+  - "go"
+difficulty: "Advanced"
+estimated_time: "6 - 8 hours"
+prerequisites:
+  - "Familiarity with HTTP clients and JSON parsing"
+  - "Basic graph traversal algorithms (topological sort, DFS/BFS)"
+  - "Understanding of archive formats (tar and gzip)"
+limitations:
+  - "Implements core package installs and lockfile generation without registry publish or auth tokens"
+  - "Direct registry downloading without peer dependency SAT-solving heuristics"
+what_we_build: "You will build a fully functional package manager CLI from scratch. You will query the npm registry HTTP API, resolve nested dependency graphs while detecting cycles, download and verify integrity checksums of .tgz packages, unpack archives into node_modules, link executable binaries into .bin, and output deterministic lockfiles."
+what_you_learn:
+  - "How package registries (like registry.npmjs.org) structure metadata and versions"
+  - "How semantic versioning (SemVer) ranges like ^1.2.0 and ~2.0.0 are resolved"
+  - "How dependency graphs are topologically ordered to guarantee valid execution sequence"
+  - "How lockfiles freeze reproducible dependency trees across different machines"
+

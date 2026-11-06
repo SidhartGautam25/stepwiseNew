@@ -1,0 +1,18 @@
+# Build Your Own Package Manager (npm/yarn)
+
+Package managers like npm, Yarn, and pnpm are some of the most critical tools in software development. They solve a deceptively tricky set of computer science problems: semver range resolution, transitive graph dependency cycles, atomic file extraction, deterministic lockfiles, and executable symlinking.
+
+In this workshop, you will demystify how package managers work by constructing your own CLI from scratch.
+
+### What We Will Build
+Across 2 chapters and 4 sequential steps, you will build:
+1. **Registry Manifest Querying**: Fetch package documents from `registry.npmjs.org`, parse JSON manifests, and locate optimal semver version releases.
+2. **Dependency Graph Resolution**: Recursively traverse dependencies and devDependencies, resolve transitive trees, and detect circular dependencies.
+3. **Tarball Download & Extraction**: Download `.tgz` package archives, verify SHA-512 integrity hashes, and unpack files into the `node_modules` directory.
+4. **Lockfile Generation & Bin Linking**: Generate deterministic lockfiles (`handrail.lock`) and create symlinks for package executables under `node_modules/.bin`.
+
+### Learning Approach
+- **Real Engineering**: Code in TypeScript or Go with local terminals and native test runners.
+- **Git Push Verification**: Run Handrail's verification pipeline on every push to `main`.
+- **Adaptive Level Control**: Seamlessly toggle between Beginner, Intermediate, and Expert depth.
+

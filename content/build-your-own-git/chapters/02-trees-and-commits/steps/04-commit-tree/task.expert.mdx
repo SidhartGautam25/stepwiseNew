@@ -1,0 +1,8 @@
+# Task: Implement git commit-tree (Expert)
+
+### Specification
+CLI invocation: `commit-tree <tree> [-p <parent>] -m <message>`
+- Construct commit envelope conforming to Git object specification.
+- Timestamp format: `[seconds since Unix epoch] [timezone offset +0000]`.
+- Store loose commit object and output the 40-character hex commit object ID.
+

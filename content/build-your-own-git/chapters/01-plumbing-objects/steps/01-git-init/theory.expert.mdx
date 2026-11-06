@@ -1,0 +1,8 @@
+# Theory: Ref Namespaces and Standards (Expert)
+
+Git references exist under hierarchical namespaces inside `.git/refs/`:
+- `refs/heads/*`: Local development branches.
+- `refs/remotes/*`: Remote tracking branches.
+- `refs/tags/*`: Annotated and lightweight release tags.
+Symbolic reference resolution resolves references by peeling symrefs recursively until a 160-bit SHA-1 hash is reached.
+

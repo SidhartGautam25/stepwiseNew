@@ -1,0 +1,7 @@
+# Theory: Hook Dispatch and Ring Queues (Expert)
+
+When `setState` dispatches, updates are pushed onto a circular or linear pending queue on the hook record.
+During the subsequent render pass, the reducer loop folds pending action dispatches into the base state:
+$$S_{n} = \text{action}(S_{n-1})$$
+yielding deterministic state transitions.
+

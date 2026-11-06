@@ -1,0 +1,10 @@
+# Task: Query Registry Manifests (Intermediate)
+
+Fetch npm registry manifests and resolve semantic version ranges.
+
+### Requirements
+- Execute HTTP GET against `https://registry.npmjs.org/<package>` with `Accept: application/vnd.npm.install-v1+json; q=1.0, application/json; q=0.8`.
+- Parse packument JSON payload.
+- Evaluate SemVer compatibility (`^`, `~`, exact, `>=`).
+- Output resolved package version, tarball URL, and integrity hash.
+

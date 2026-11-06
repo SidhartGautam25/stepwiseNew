@@ -1,0 +1,7 @@
+title: "Resolve Dependency Graph"
+global_order: 2
+tests:
+  - test_id: "test_npm_resolve_graph"
+    description: "Resolves transitive dependency graph and handles cycles"
+    is_hidden: false
+

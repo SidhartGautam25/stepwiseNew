@@ -1,0 +1,18 @@
+# Build Your Own React
+
+React completely revolutionized frontend architecture by introducing declarative UI and the Virtual DOM. But beneath the JSX syntax lies a surprisingly understandable core: trees of virtual nodes, work loops, linked fibers, and closures managing component state.
+
+In this workshop, you will step inside React's inner machinery and build a working React clone from zero.
+
+### What We Will Build
+Across 2 chapters and 4 sequential steps, you will construct:
+1. **The createElement Transform**: Map JSX tags and child nodes to standardized virtual DOM descriptor objects with text node normalization.
+2. **Recursive DOM Renderer**: Transform virtual elements into real browser DOM elements and attach attributes and event listeners.
+3. **Concurrent Fiber Loop**: Replace blocking recursion with an incremental scheduler using work-in-progress fibers and deadline-aware time-slicing.
+4. **Hooks and State Reconciliation**: Implement `useState`, compute commit phase DOM mutations, and trigger stateful component re-renders.
+
+### Learning Approach
+- **Local Engineering**: Develop in your favorite code editor with real compilers and test runners.
+- **Git Push Verification**: Run Handrail's verification pipeline on every push to `main`.
+- **Adaptive Level Control**: Seamlessly toggle between **Beginner**, **Intermediate**, and **Expert** explanations as you progress.
+

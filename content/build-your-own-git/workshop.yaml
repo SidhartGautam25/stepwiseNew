@@ -1,0 +1,21 @@
+title: "Build Your Own Git"
+summary: "Build a content-addressable version control system from scratch implementing init, hash-object, cat-file, and commit-tree."
+languages:
+  - "go"
+  - "python"
+difficulty: "Intermediate"
+estimated_time: "5 - 8 hours"
+prerequisites:
+  - "Familiarity with file I/O and byte slicing"
+  - "Basic understanding of cryptographic hashing (SHA-1)"
+  - "Familiarity with compression algorithms (zlib / deflate)"
+limitations:
+  - "Covers the core plumbing and porcelain commit layer (no smart HTTP wire protocol or packfiles in this workshop)"
+  - "Local branch and tree navigation without 3-way merge resolution"
+what_we_build: "You will build a fully functional Git client from scratch. You will implement repository initialization (.git layout), parse and decompress zlib-compressed git objects from disk, compute SHA-1 object identifiers, construct tree directories, and record immutable commit objects pointing to parent history."
+what_you_learn:
+  - "How Git uses a content-addressable storage model based on SHA-1 hashes"
+  - "The exact binary structure of Git blob, tree, and commit objects"
+  - "How zlib compression packages objects inside the .git/objects hierarchy"
+  - "How Git forms an append-only directed acyclic graph (DAG) of revisions"
+

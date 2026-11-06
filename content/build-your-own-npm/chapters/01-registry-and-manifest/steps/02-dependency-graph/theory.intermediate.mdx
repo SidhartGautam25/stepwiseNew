@@ -1,0 +1,10 @@
+# Theory: Nested Trees vs Flattened Hoisting (Intermediate)
+
+Historically (npm v2), package managers created deeply nested directory structures:
+`node_modules/A/node_modules/B/node_modules/C/...`
+This caused two major problems:
+1. File paths on Windows easily exceeded the 260-character MAX_PATH limit (`MAX_PATH_EXCEEDED`).
+2. The exact same library was downloaded and duplicated dozens of times across different folders.
+
+Modern package managers flatten the dependency tree by **hoisting** shared packages to the top-level `node_modules` whenever version ranges do not conflict.
+

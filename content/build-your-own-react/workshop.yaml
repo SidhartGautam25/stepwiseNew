@@ -1,0 +1,21 @@
+title: "Build Your Own React"
+summary: "Construct a modern virtual DOM and fiber reconciler with concurrent scheduling and hooks from the ground up."
+languages:
+  - "typescript"
+  - "javascript"
+difficulty: "Intermediate"
+estimated_time: "5 - 7 hours"
+prerequisites:
+  - "Modern JavaScript/TypeScript ES6+ fundamentals"
+  - "Basic understanding of the Browser DOM tree (document.createElement, appendChild)"
+  - "Familiarity with JSX syntax and transpilations"
+limitations:
+  - "Focuses on the core DOM renderer (no React Native or SSR engine in this workshop)"
+  - "Implements useState and basic reconciliation without advanced synthetic event batching"
+what_we_build: "You will build a full miniature React implementation from scratch. You will write createElement to transform JSX into virtual DOM trees, implement a recursive DOM renderer, evolve it into an incremental Fiber-based concurrent engine using requestIdleCallback, and build stateful re-rendering with useState."
+what_you_learn:
+  - "How JSX compiles to createElement calls and what VDOM nodes look like in memory"
+  - "Why recursive rendering blocks the browser main thread and how Fiber architecture solves it"
+  - "How linked-list Fiber trees represent component hierarchies and work-in-progress trees"
+  - "How hook state arrays persist between renders and trigger incremental reconciliation"
+

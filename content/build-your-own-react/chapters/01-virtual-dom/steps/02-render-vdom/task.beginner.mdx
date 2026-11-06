@@ -1,0 +1,16 @@
+# Task: Recursive DOM Renderer (Beginner)
+
+Now we will implement `render(element, container)`.
+
+### Instructions
+1. In `src/index.ts`, define:
+   ```ts
+   export function render(element: any, container: HTMLElement)
+   ```
+2. Create real DOM nodes:
+   - If `element.type === "TEXT_ELEMENT"`, create node with `document.createTextNode("")`.
+   - Otherwise, create node with `document.createElement(element.type)`.
+3. Assign element props (excluding `children`) to the DOM node (e.g. `node[name] = element.props[name]`).
+4. Recursively call `render(child, dom)` for each child in `element.props.children`.
+5. Append the newly created DOM node to `container.appendChild(dom)`.
+

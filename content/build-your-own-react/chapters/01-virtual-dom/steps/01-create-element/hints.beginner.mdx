@@ -1,0 +1,17 @@
+# Hints (Beginner)
+
+Make sure to return an object:
+```ts
+return {
+  type,
+  props: {
+    ...(props || {}),
+    children: children.map(child =>
+      typeof child === 'object' && child !== null
+        ? child
+        : createTextElement(child)
+    ),
+  },
+};
+```
+

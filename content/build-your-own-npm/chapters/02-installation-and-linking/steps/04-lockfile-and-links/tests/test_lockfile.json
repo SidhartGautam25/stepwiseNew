@@ -1,0 +1,6 @@
+{
+  "test_id": "test_npm_lockfile_and_links",
+  "name": "Lockfile and bin link generation",
+  "assertion": "install writes deterministic lockfile and links bins"
+}
+

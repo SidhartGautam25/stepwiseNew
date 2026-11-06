@@ -1,0 +1,7 @@
+title: "Download & Extract Tarballs"
+global_order: 3
+tests:
+  - test_id: "test_npm_download_tarball"
+    description: "Downloads .tgz archive, verifies integrity, and extracts package contents"
+    is_hidden: false
+

@@ -1,0 +1,12 @@
+name: Handrail Verification
+on:
+  push:
+    branches: [main, master]
+
+jobs:
+  verify:
+    uses: handrail-dev/verify-workflow/.github/workflows/verify.yml@v1
+    permissions:
+      id-token: write
+      contents: read
+

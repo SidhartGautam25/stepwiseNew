@@ -1,0 +1,6 @@
+# Theory: Two-Phase Architecture (Intermediate)
+
+Fiber architecture divides work into two distinct phases:
+1. **Render Phase**: Traversing and preparing fiber trees, comparing new props with old fibers. This phase can be interrupted, resumed, or discarded if a higher priority update arrives.
+2. **Commit Phase**: Applying all computed DOM changes (insertions, deletions, updates) to the actual browser DOM in one fast, uninterrupted synchronous sweep to prevent incomplete UI flashing.
+

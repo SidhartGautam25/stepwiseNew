@@ -1,0 +1,11 @@
+# Theory: Executable Bins and Path Resolution (Intermediate)
+
+When a package provides a command line tool (like `eslint` or `prettier`), it declares a `"bin"` field in `package.json`:
+```json
+"bin": {
+  "prettier": "./bin/prettier.cjs"
+}
+```
+During installation, package managers create a directory `node_modules/.bin/` and place a symlink pointing to the target script.
+When you run `npx prettier` or `npm test`, npm automatically prepends `node_modules/.bin` to the shell's `PATH` environment variable so your scripts can execute local tools without installing them globally!
+

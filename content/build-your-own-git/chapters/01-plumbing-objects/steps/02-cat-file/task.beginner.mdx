@@ -1,0 +1,18 @@
+# Task: Implement git cat-file (Beginner)
+
+Your program should respond to the `cat-file -p <blob_sha>` command:
+```bash
+your_git cat-file -p e88f25b3ff3b340666a7cbac7361816d69291318
+```
+
+### Instructions
+1. Parse the command line arguments for `cat-file -p <hash>`.
+2. Locate the object on disk:
+   - First 2 characters are the directory: `.git/objects/e8/`
+   - Remaining 38 characters are the filename: `8f25b3ff3b340666a7cbac7361816d69291318`
+3. Read the file bytes and decompress using `zlib`.
+4. Parse the uncompressed byte header:
+   Format is: `<type> <size>\0<content>`
+   (e.g., `blob 12\0hello world\n`)
+5. Print the raw `<content>` part to stdout (without the header or null byte).
+

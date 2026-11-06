@@ -1,0 +1,16 @@
+# Theory: Virtual DOM Architecture (Intermediate)
+
+When transpiling JSX via `@babel/plugin-transform-react-jsx`, the compiler produces recursive `createElement` function calls:
+
+```html
+<main class="app"><p>Step 1</p></main>
+```
+becomes:
+```js
+createElement("main", { class: "app" },
+  createElement("p", null, "Step 1")
+)
+```
+
+By standardizing all elements (including string content) into nodes with identical shape (`{ type, props }`), our subsequent rendering and diffing algorithms can traverse the entire tree uniformly without branching on primitive types.
+

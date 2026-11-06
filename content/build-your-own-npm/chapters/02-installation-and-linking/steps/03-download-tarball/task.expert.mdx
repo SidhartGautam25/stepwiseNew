@@ -1,0 +1,8 @@
+# Task: Download & Extract Tarballs (Expert)
+
+### Specification
+CLI invocation: `download <url> <dest>`
+- Download `.tgz` stream asynchronously with keep-alive connections.
+- Perform Subresource Integrity (SRI) validation against `dist.integrity`. Reject corrupted or tampered payloads with exit code 1.
+- Extract files atomically into destination directory preserving file modes.
+

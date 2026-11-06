@@ -11,7 +11,7 @@ export function Card({
     <div
       className={twMerge(
         clsx(
-          'bg-slate-900/70 border border-slate-800 rounded-2xl overflow-hidden backdrop-blur-sm transition-all duration-200',
+          'bg-white border-2 border-black rounded-[2px] shadow-hard-md overflow-hidden transition-all duration-150 text-black',
           className,
         ),
       )}
@@ -29,7 +29,7 @@ export function CardHeader({
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={twMerge(clsx('p-6 border-b border-slate-800/80', className))}
+      className={twMerge(clsx('p-5 sm:p-6 border-b-2 border-black', className))}
       {...props}
     >
       {children}
@@ -45,7 +45,7 @@ export function CardTitle({
   return (
     <h3
       className={twMerge(
-        clsx('text-xl font-bold tracking-tight text-white', className),
+        clsx('text-xl font-extrabold tracking-tight text-black', className),
       )}
       {...props}
     >
@@ -61,7 +61,7 @@ export function CardDescription({
 }: React.HTMLAttributes<HTMLParagraphElement>) {
   return (
     <p
-      className={twMerge(clsx('text-sm text-slate-400 mt-1', className))}
+      className={twMerge(clsx('text-sm text-theme-muted mt-1 leading-relaxed', className))}
       {...props}
     >
       {children}
@@ -75,7 +75,7 @@ export function CardContent({
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className={twMerge(clsx('p-6', className))} {...props}>
+    <div className={twMerge(clsx('p-5 sm:p-6 text-black', className))} {...props}>
       {children}
     </div>
   );
@@ -90,7 +90,7 @@ export function CardFooter({
     <div
       className={twMerge(
         clsx(
-          'p-6 bg-slate-950/40 border-t border-slate-800/80 flex items-center',
+          'p-5 sm:p-6 bg-theme-bg/60 border-t-2 border-black flex items-center',
           className,
         ),
       )}

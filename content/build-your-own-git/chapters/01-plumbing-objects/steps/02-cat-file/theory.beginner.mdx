@@ -1,0 +1,11 @@
+# Theory: How Git Stores Files (Beginner)
+
+Git never saves "diffs" or deltas for regular files: it stores complete snapshots!
+Every file you add to Git is converted into a **blob object** (binary large object):
+1. Git takes your file contents.
+2. It prepends a header: `blob <byte_count>\0`.
+3. It compresses the whole package using `zlib` to save disk space.
+4. It stores it in `.git/objects/`.
+Why split the hash into 2 characters and 38 characters?
+Because some filesystems slow down when a single folder contains tens of thousands of files! Splitting by the first 2 characters distributes objects across 256 subfolders (`00` to `ff`).
+

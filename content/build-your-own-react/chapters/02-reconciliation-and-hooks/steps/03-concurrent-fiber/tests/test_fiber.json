@@ -1,0 +1,6 @@
+{
+  "test_id": "test_fiber_work_loop",
+  "name": "Fiber work loop unit processing",
+  "assertion": "performUnitOfWork creates fibers and advances nextUnitOfWork"
+}
+

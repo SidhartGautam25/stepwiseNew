@@ -1,0 +1,8 @@
+# Theory: Why Do We Need Lockfiles? (Beginner)
+
+Imagine you install a package specified as `"express": "^4.18.0"`.
+Today, the registry gives you `4.18.2`.
+Six months later, Express releases `4.19.0`. Your colleague clones the repository and runs install, getting `4.19.0`.
+If `4.19.0` contains a bug, it works on your computer, but crashes on your teammate's computer ("Works on my machine!").
+A **lockfile** (`package-lock.json`, `pnpm-lock.yaml`, `yarn.lock`) solves this by freezing the exact version, URL, and hash of every installed dependency so every install is 100% reproducible.
+

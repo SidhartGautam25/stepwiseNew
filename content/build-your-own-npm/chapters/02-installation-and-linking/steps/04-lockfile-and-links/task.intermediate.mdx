@@ -1,0 +1,10 @@
+# Task: Lockfile & Bin Linking (Intermediate)
+
+Serialize deterministic lockfile documents and establish executable entrypoint shims in `node_modules/.bin`.
+
+### Requirements
+- Parse root `package.json` dependencies and devDependencies.
+- Generate formatted, sorted, deterministic YAML or JSON lockfile (`handrail.lock`).
+- Scan installed package manifests for `bin` string or key-value object mappings.
+- Create cross-platform executable shims or symlinks in `node_modules/.bin/`.
+

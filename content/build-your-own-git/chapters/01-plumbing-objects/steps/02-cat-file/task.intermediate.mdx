@@ -1,0 +1,11 @@
+# Task: Implement git cat-file (Intermediate)
+
+Implement zlib loose object inflation and header stripping for `cat-file -p <hash>`.
+
+### Requirements
+- Locate object file in `.git/objects/<2-hex>/<38-hex>`.
+- Decompress zlib stream.
+- Locate the first null byte `\0` (ASCII 0).
+- Extract the object type and decimal size before the null byte.
+- Write the remaining content buffer directly to standard output without trailing newline mutations.
+

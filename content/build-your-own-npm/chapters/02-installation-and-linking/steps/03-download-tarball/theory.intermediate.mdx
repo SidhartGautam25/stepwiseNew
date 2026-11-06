@@ -1,0 +1,12 @@
+# Theory: Subresource Integrity (SRI) (Intermediate)
+
+Package security relies on SRI hashes.
+In the registry manifest, `dist.integrity` is formatted as:
+`sha512-<base64_hash>`
+
+Before saving extracted code to disk:
+1. Calculate the SHA-512 digest of the raw downloaded gzip bytes.
+2. Encode the digest in Base64.
+3. Compare against the expected hash in constant time.
+If an attacker attempted to intercept network traffic and inject malicious code (Man-in-the-Middle), the hash check fails immediately and prevents malware execution.
+
