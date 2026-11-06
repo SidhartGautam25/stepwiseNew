@@ -1,0 +1,19 @@
+# Task: Implement git init (Beginner)
+
+Your program should respond to the `init` CLI subcommand:
+```bash
+your_git init
+```
+
+### Instructions
+1. Inspect CLI arguments to match the `init` command.
+2. Create the `.git` directory structure:
+   - `.git/objects`
+   - `.git/refs` and `.git/refs/heads`
+3. Write the file `.git/HEAD` containing:
+   ```text
+   ref: refs/heads/main
+   ```
+   (include a newline at the end).
+4. Print `Initialized empty Git repository` to stdout.
+

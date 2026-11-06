@@ -1,0 +1,10 @@
+# Theory: What is a Git Commit? (Beginner)
+
+Many people think a commit is a set of "diffs" from the last version. In reality:
+A Git commit is simply a text file with:
+1. A pointer to the top-level directory snapshot (`tree`).
+2. A pointer to the previous commit (`parent`).
+3. Who wrote it (`author`) and who committed it (`committer`).
+4. A commit message explaining why the change was made.
+By following the `parent` pointers from any commit backwards in time, Git reconstructs the complete history of your project!
+

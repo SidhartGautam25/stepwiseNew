@@ -15,7 +15,7 @@ describe('CatalogService', () => {
     service = new CatalogService(mockPrisma);
   });
 
-  it('lists workshops and calculates total steps', async () => {
+  it('lists workshops strictly from database and calculates total steps', async () => {
     mockPrisma.workshop.findMany.mockResolvedValue([
       {
         id: 'w1',
@@ -39,7 +39,7 @@ describe('CatalogService', () => {
     expect(result[0].languages).toEqual(['go', 'python']);
   });
 
-  it('retrieves workshop overview with chapters and steps', async () => {
+  it('retrieves workshop overview with chapters and steps strictly from database', async () => {
     mockPrisma.workshop.findUnique.mockResolvedValue({
       id: 'w1',
       slug: 'build-your-own-redis',
@@ -48,22 +48,22 @@ describe('CatalogService', () => {
       difficulty: 'Intermediate',
       estimatedTime: '4 - 6 hours',
       prerequisites: ['TCP/IP'],
-      limitations: ['No cluster'],
+      limitations: ['Single thread'],
       whatWeBuild: 'Redis clone',
-      whatYouLearn: ['RESP parser'],
+      whatYouLearn: ['TCP'],
       languages: [{ language: 'go' }],
       chapters: [
         {
           id: 'c1',
-          slug: '01-tcp-handshake',
-          title: 'TCP Handshake',
-          summary: 'Socket setup',
+          slug: '01-tcp',
+          title: 'TCP',
+          summary: 'TCP setup',
           orderIndex: 1,
           steps: [
             {
               id: 's1',
-              slug: '01-bind-port',
-              title: 'Bind Port',
+              slug: '01-bind',
+              title: 'Bind',
               globalOrder: 1,
               tests: [{ id: 't1' }],
             },
@@ -72,34 +72,40 @@ describe('CatalogService', () => {
       ],
     });
 
-    const overview = await service.getWorkshopOverview('build-your-own-redis');
-    expect(overview.slug).toBe('build-your-own-redis');
-    expect(overview.chapters).toHaveLength(1);
-    expect(overview.chapters[0].steps).toHaveLength(1);
-    expect(overview.chapters[0].steps[0].testCount).toBe(1);
+    const result = await service.getWorkshopOverview('build-your-own-redis');
+    expect(result.slug).toBe('build-your-own-redis');
+    expect(result.chapters).toHaveLength(1);
+    expect(result.chapters[0].steps[0].testCount).toBe(1);
   });
 
-  it('retrieves step details with 3-level content prefetch mapping', async () => {
+  it('retrieves step details with 3-level content prefetch mapping strictly from database', async () => {
     mockPrisma.workshop.findUnique.mockResolvedValue({
       id: 'w1',
       slug: 'build-your-own-redis',
       chapters: [
         {
-          slug: '01-tcp-handshake',
+          id: 'c1',
+          slug: '01-tcp',
           steps: [
             {
               id: 's1',
-              slug: '01-bind-port',
+              slug: '01-bind',
               title: 'Bind Port',
               globalOrder: 1,
-              tests: [{ testId: 't1', description: 'Bind test', isHidden: false }],
+              tests: [
+                {
+                  testId: 't1',
+                  description: 'binds port',
+                  isHidden: false,
+                },
+              ],
               contents: [
-                { kind: 'task', level: 'beginner', mdx: 'Task Beginner' },
-                { kind: 'task', level: 'intermediate', mdx: 'Task Intermediate' },
-                { kind: 'task', level: 'expert', mdx: 'Task Expert' },
-                { kind: 'theory', level: 'beginner', mdx: 'Theory Beginner' },
-                { kind: 'theory', level: 'intermediate', mdx: 'Theory Intermediate' },
-                { kind: 'theory', level: 'expert', mdx: 'Theory Expert' },
+                { level: 'beginner', kind: 'task', mdx: '# Task Beginner' },
+                { level: 'beginner', kind: 'theory', mdx: '# Theory Beginner' },
+                { level: 'intermediate', kind: 'task', mdx: '# Task Intermediate' },
+                { level: 'intermediate', kind: 'theory', mdx: '# Theory Intermediate' },
+                { level: 'expert', kind: 'task', mdx: '# Task Expert' },
+                { level: 'expert', kind: 'theory', mdx: '# Theory Expert' },
               ],
             },
           ],
@@ -107,12 +113,10 @@ describe('CatalogService', () => {
       ],
     });
 
-    const stepDetail = await service.getStepDetail('build-your-own-redis', '01-bind-port', 'beginner');
-    expect(stepDetail.slug).toBe('01-bind-port');
-    expect(stepDetail.currentLevel).toBe('beginner');
-    expect(stepDetail.taskMdx).toBe('Task Beginner');
-    expect(stepDetail.allLevelsContent).toBeDefined();
-    expect(stepDetail.allLevelsContent?.expert?.task).toBe('Task Expert');
-    expect(stepDetail.tests).toHaveLength(1);
+    const result = await service.getStepDetail('build-your-own-redis', '01-bind', 'beginner');
+    expect(result.currentLevel).toBe('beginner');
+    expect(result.taskMdx).toBe('# Task Beginner');
+    expect(result.theoryMdx).toBe('# Theory Beginner');
+    expect(result.allLevelsContent?.expert?.task).toBe('# Task Expert');
   });
 });

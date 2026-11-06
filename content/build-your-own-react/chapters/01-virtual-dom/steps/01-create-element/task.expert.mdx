@@ -1,0 +1,8 @@
+# Task: Implement createElement (Expert)
+
+### Specification
+Export `createElement(type, props, ...children)` conforming to the classic React element specification.
+- Return format: `{ type, props: { ...props, children } }`
+- Primitives normalized to `{ type: "TEXT_ELEMENT", props: { nodeValue, children: [] } }`
+- Omit `null`/`undefined` props safely without prototype contamination.
+

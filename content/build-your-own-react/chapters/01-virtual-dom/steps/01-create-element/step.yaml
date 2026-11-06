@@ -1,0 +1,10 @@
+title: "Implement createElement"
+global_order: 1
+tests:
+  - test_id: "test_create_element_simple"
+    description: "createElement creates a node with type, props, and children"
+    is_hidden: false
+  - test_id: "test_create_element_text_node"
+    description: "Primitive string and number children are normalized to TEXT_ELEMENT types"
+    is_hidden: false
+

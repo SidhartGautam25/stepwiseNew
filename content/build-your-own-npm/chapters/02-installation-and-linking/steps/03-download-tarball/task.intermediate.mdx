@@ -1,0 +1,10 @@
+# Task: Download & Extract Tarballs (Intermediate)
+
+Download `.tgz` package archives with integrity verification and strip extraction.
+
+### Requirements
+- Stream tarball over HTTP into memory buffer or temp directory.
+- Verify subresource integrity hash (`sha512-...` base64).
+- Decompress gzip and unpack tar entries into target directory.
+- Strip leading `package/` entry path prefix during file extraction.
+

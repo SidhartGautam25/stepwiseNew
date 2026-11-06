@@ -1,0 +1,10 @@
+# Task: Resolve Dependency Graph (Intermediate)
+
+Traverse transitive dependencies breadth-first and build a flattened resolution map.
+
+### Requirements
+- Process `package.json` dependencies and resolve each version requirement.
+- For each child node, inspect its dependencies recursively.
+- Detect dependency cycles and prevent infinite recursion using cycle detection.
+- Return a map containing all flattened packages with exact resolved versions and tarball URLs.
+

@@ -1,0 +1,7 @@
+# Theory: How Hooks Work Under the Hood (Beginner)
+
+Have you ever wondered why React has the rule: **"Only call hooks at the top level, never inside loops or if-statements"**?
+Now you know the answer!
+React does NOT use magic: it simply keeps an array of hooks on the current Fiber (`wipFiber.hooks`), and increments an index (`hookIndex++`) every time you call `useState`.
+If an `if` statement causes one hook to be skipped, all subsequent hook indices get scrambled and read the wrong state!
+

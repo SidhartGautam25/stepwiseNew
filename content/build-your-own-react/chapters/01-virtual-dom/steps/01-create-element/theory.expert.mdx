@@ -1,0 +1,7 @@
+# Theory: Element Factory Semantics (Expert)
+
+React's element creation factory adheres to RFC 0001 (JSX element model). Key invariants:
+1. Elements are immutable value descriptors.
+2. The `children` array is always nested under `props.children`.
+3. Specialized types (`TEXT_ELEMENT`) represent leaf text nodes to eliminate special cases during the commit phase.
+

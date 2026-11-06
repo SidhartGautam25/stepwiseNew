@@ -1,0 +1,10 @@
+# Task: Implement git commit-tree (Intermediate)
+
+Serialize commit objects linking snapshot trees to revision parentage.
+
+### Requirements
+- Parse positional tree hash, `-m` message string, and optional `-p` parent hash.
+- Format commit payload with tree, optional parent, author/committer timestamps, empty separator line, and commit message.
+- Compute SHA-1, compress with zlib, and store into `.git/objects/`.
+- Print commit hash to stdout.
+

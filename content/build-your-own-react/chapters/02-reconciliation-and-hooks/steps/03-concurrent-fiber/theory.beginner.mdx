@@ -1,0 +1,9 @@
+# Theory: What is a Fiber? (Beginner)
+
+A Fiber is a plain JavaScript object representing a unit of work.
+Instead of letting JavaScript recursively dive into deep functions, each fiber knows:
+- Who its first child is (`child`)
+- Who its next brother or sister is (`sibling`)
+- Who its parent is (`parent`)
+Because of these pointers, the browser can pause rendering at any fiber, handle a user click or paint a frame, and resume right where it left off!
+

@@ -1,0 +1,10 @@
+# Task: Implement createElement (Intermediate)
+
+Implement `createElement(type, props, ...children)` with primitive normalization.
+
+### Requirements
+- Signature: `createElement(type: string, props: Record<string, any> | null, ...children: (VNode | string | number)[])`
+- Must produce plain JavaScript object representations of VDOM nodes.
+- Children passed as rest parameters must be spread or flattened and converted to valid nodes.
+- Non-object children (strings, numbers) must be transformed to synthetic text nodes with `type: "TEXT_ELEMENT"` and `props: { nodeValue: String(val), children: [] }`.
+

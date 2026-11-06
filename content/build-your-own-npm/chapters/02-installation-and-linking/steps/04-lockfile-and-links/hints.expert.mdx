@@ -1,0 +1,8 @@
+# Hints (Expert)
+
+When running on Windows without Administrator symlink privileges, fallback to writing a `.cmd` batch shim:
+```cmd
+@ECHO off
+node "%~dp0\..\path\to\script.js" %*
+```
+

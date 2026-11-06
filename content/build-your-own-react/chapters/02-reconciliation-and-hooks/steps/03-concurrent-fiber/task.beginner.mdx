@@ -1,0 +1,17 @@
+# Task: Concurrent Fiber Loop (Beginner)
+
+We will break rendering into small units of work called **Fibers**.
+
+### Instructions
+1. Define a Fiber data structure:
+   - `fiber.dom`: reference to real DOM node
+   - `fiber.parent`: parent fiber
+   - `fiber.child`: first child fiber
+   - `fiber.sibling`: next sibling fiber
+2. Create a global `nextUnitOfWork` pointer.
+3. Write a `workLoop(deadline)` function scheduled by `requestIdleCallback(workLoop)`.
+4. Implement `performUnitOfWork(fiber)`:
+   - Create DOM node for fiber if missing.
+   - Create child fibers for each child element.
+   - Return the next fiber to process: child -> sibling -> parent sibling.
+

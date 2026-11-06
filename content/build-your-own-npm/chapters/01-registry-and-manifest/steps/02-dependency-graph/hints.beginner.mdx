@@ -1,0 +1,8 @@
+# Hints (Beginner)
+
+Use an iterative queue (BFS) instead of recursion to keep memory usage low:
+```ts
+const queue = [{ name: rootName, range: rootRange }];
+const resolved = new Map();
+```
+

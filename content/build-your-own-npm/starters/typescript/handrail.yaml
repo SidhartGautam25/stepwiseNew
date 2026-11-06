@@ -1,0 +1,15 @@
+version: "1.0"
+language: "typescript"
+build: "npm install && npm run build"
+run: "node dist/index.js"
+platforms:
+  windows:
+    build: "npm install && npm run build"
+    run: "node dist/index.js"
+  linux:
+    build: "npm install && npm run build"
+    run: "node dist/index.js"
+  darwin:
+    build: "npm install && npm run build"
+    run: "node dist/index.js"
+

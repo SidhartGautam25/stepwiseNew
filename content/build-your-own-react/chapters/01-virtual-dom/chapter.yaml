@@ -1,0 +1,4 @@
+title: "The Virtual DOM & Rendering"
+summary: "Construct virtual element descriptors and build the baseline DOM mounting engine."
+order_index: 1
+

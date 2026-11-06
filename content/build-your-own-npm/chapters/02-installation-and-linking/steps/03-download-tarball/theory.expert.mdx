@@ -1,0 +1,8 @@
+# Theory: POSIX Tar Specification and UStar Headers (Expert)
+
+The POSIX tar archive structure consists of contiguous 512-byte blocks:
+- Header block: 100 bytes filename, 8 bytes file mode, 12 bytes octal size, 12 bytes mtime, 8 bytes checksum, 1 byte typeflag (`0` or `\0` for regular file, `5` for directory, `2` for symlink), and 6 bytes magic `ustar\0`.
+- Data blocks: the file contents padded to the next 512-byte boundary.
+- End marker: two consecutive 512-byte blocks of binary zeroes.
+Streaming parsers decode these blocks in memory without writing intermediate `.tar` files to disk.
+

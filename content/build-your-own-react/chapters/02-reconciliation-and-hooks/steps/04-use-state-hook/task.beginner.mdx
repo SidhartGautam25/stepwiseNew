@@ -1,0 +1,16 @@
+# Task: Implement useState (Beginner)
+
+Now we will add support for functional components and the `useState` hook.
+
+### Instructions
+1. In `src/index.ts`, define a global `wipFiber` variable and `hookIndex`.
+2. When executing a functional component fiber:
+   - Reset `wipFiber.hooks = []`.
+   - Set `hookIndex = 0`.
+   - Call the component function to retrieve its child elements.
+3. Implement `useState(initial)`:
+   - Check if an old hook exists on `wipFiber.alternate?.hooks[hookIndex]`.
+   - If old hook exists, copy its state; otherwise use `initial`.
+   - Run any actions queued in `oldHook.queue` to compute new state.
+   - Return `[hook.state, setState]`, where `setState(action)` pushes action to the queue and sets `wipRoot` to trigger a new render pass!
+

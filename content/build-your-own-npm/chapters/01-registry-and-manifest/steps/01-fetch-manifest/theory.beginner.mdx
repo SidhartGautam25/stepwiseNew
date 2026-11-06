@@ -1,0 +1,9 @@
+# Theory: The npm Registry Architecture (Beginner)
+
+The npm registry (`registry.npmjs.org`) is a massive public database hosting millions of open-source packages.
+When you query `https://registry.npmjs.org/express`, it returns a document called a **packument** containing:
+- All published versions of the package (e.g. `4.18.0`, `4.18.1`, `5.0.0`)
+- What dependencies each version requires
+- Where to download the `.tgz` (tarball) file for that release
+- A cryptographic integrity checksum to verify that downloaded files haven't been modified.
+

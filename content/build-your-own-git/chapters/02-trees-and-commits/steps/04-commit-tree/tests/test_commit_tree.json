@@ -1,0 +1,6 @@
+{
+  "test_id": "test_git_commit_tree",
+  "name": "Write commit tree object",
+  "assertion": "commit-tree writes commit object pointing to tree and parent"
+}
+

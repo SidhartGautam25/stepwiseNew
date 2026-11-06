@@ -1,0 +1,14 @@
+# Task: Download & Extract Tarballs (Beginner)
+
+Your program should respond to the `download <tarball-url> <target-dir>` command:
+```bash
+your_pm download https://registry.npmjs.org/is-number/-/is-number-7.0.0.tgz ./node_modules/is-number
+```
+
+### Instructions
+1. Download the `.tgz` (tar gzip) file from the specified URL into a byte buffer or temporary file.
+2. If an `integrity` string is available (e.g. `sha512-...`), compute the SHA-512 hash of the downloaded bytes and verify it matches.
+3. Decompress the gzip stream using `zlib.gunzip`.
+4. Parse the tar archive and extract all files inside into `<target-dir>`.
+   Note: npm tarballs place files inside a top-level `package/` folder. Strip this leading `package/` prefix when extracting!
+

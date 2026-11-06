@@ -1,0 +1,5 @@
+# Hints (Beginner)
+
+Store the hook in `wipFiber.hooks.push(hook)` and increment `hookIndex++`.
+Action callers can be either values or functions: `typeof action === 'function' ? action(hook.state) : action`.
+

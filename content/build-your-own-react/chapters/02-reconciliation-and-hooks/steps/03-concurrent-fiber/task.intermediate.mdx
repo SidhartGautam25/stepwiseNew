@@ -1,0 +1,9 @@
+# Task: Concurrent Fiber Loop (Intermediate)
+
+Convert synchronous DOM mounting into cooperative fiber work scheduling.
+
+### Requirements
+- Maintain a singly-linked tree of fibers using `child`, `sibling`, and `parent`.
+- Execute work units inside `requestIdleCallback` loop while `deadline.timeRemaining() > 1`.
+- Search for the next unit of work depth-first: return child if present; else sibling; else traverse upwards until an ancestor sibling is located.
+

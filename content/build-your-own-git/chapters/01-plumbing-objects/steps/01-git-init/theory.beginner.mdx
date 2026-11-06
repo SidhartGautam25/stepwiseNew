@@ -1,0 +1,9 @@
+# Theory: Anatomy of the .git Directory (Beginner)
+
+When you run `git init` in any project, Git creates a hidden directory called `.git`.
+Everything that makes Git work lives inside this single directory:
+- `objects/`: All files, directories, and commit snapshots.
+- `refs/`: Pointers to specific commits (like `refs/heads/main`).
+- `HEAD`: Points to the branch or commit you are currently working on.
+Because Git keeps everything inside `.git`, deleting `.git` removes all version history and turns the project back into an ordinary directory!
+

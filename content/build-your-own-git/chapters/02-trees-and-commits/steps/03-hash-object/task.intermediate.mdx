@@ -1,0 +1,12 @@
+# Task: Implement git hash-object (Intermediate)
+
+Implement blob serialization and storage with SHA-1 hashing.
+
+### Requirements
+- Prepend header `blob <len>\0` to file contents.
+- Calculate SHA-1 digest across header + payload.
+- If `-w` flag is passed:
+  - Create directory `.git/objects/<hash[0:2]>` if it does not exist.
+  - Compress combined buffer with zlib and write to `.git/objects/<hash[0:2]>/<hash[2:]>`.
+- Print 40-character hex hash followed by newline.
+

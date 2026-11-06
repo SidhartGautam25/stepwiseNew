@@ -1,0 +1,7 @@
+# Theory: SHA-1 Integrity and Merkle Trees (Intermediate)
+
+Git's entire security and immutability model rests on cryptographic hashing.
+By hashing `header + payload`:
+- Two identical payloads with different object types (e.g. a blob vs a commit containing the same bytes) produce different hashes.
+- The object store is a tamper-evident Merkle DAG. Any modification to an ancestor commit cascades forward, breaking all downstream child hashes.
+

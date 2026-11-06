@@ -1,0 +1,7 @@
+# Task: Resolve Dependency Graph (Expert)
+
+### Specification
+CLI invocation: `resolve <pkg> [range]`
+- Perform topological resolution over directed dependency graph.
+- Implement deduplication: if multiple subdependencies require overlapping semver ranges of the same library, hoist a single mutually compatible version.
+

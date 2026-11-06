@@ -1,0 +1,18 @@
+# Build Your Own Git
+
+Git is the foundation of modern software engineering. While most developers interact with high-level porcelain commands (`git add`, `git commit`, `git push`), Git's internal architecture is remarkably simple and elegant: an append-only directed acyclic graph (DAG) built on top of a content-addressable filesystem.
+
+In this workshop, you will demystify how Git really works under the hood by implementing the core plumbing commands from scratch.
+
+### What We Will Build
+Across 2 chapters and 4 sequential steps, you will build:
+1. **Repository Initialization (`git init`)**: Create the required `.git` internal hierarchy, write the default `HEAD` ref, and set up the object store.
+2. **Decompress and Read Blobs (`git cat-file`)**: Locate loose objects in `.git/objects/`, decompress using zlib, validate object headers, and print contents.
+3. **Hash and Store Blobs (`git hash-object`)**: Compute SHA-1 content hashes, format the `<type> <size>\0<content>` byte stream, compress with zlib, and store to disk.
+4. **Trees and Commits (`git commit-tree`)**: Construct binary git tree records, write author and committer metadata, and link commits to parent revision graphs.
+
+### Learning Approach
+- **Local Development**: Work in your own terminal and editor in Go or Python.
+- **Git Push Verification**: Pushing to GitHub triggers our automated test runner against your CLI binary.
+- **Adaptive Level Control**: Seamlessly toggle between Beginner, Intermediate, and Expert depth.
+

@@ -1,0 +1,6 @@
+{
+  "test_id": "test_npm_fetch_manifest",
+  "name": "Fetch package manifest",
+  "assertion": "Fetches registry document and resolves compatible semver release"
+}
+

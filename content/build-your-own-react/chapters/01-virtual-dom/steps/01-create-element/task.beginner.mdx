@@ -1,0 +1,27 @@
+# Task: Implement createElement (Beginner)
+
+Your first goal is to implement `createElement(type, props, ...children)`.
+
+JSX like `<div id="box"><span>Hello</span></div>` gets transpiled by Babel or TypeScript into:
+```js
+createElement("div", { id: "box" }, createElement("span", null, "Hello"))
+```
+
+### Instructions
+1. In your `src/index.ts` (or `src/index.js`), define and export the `createElement` function:
+   ```ts
+   export function createElement(type: string, props: any, ...children: any[])
+   ```
+2. Return an object with two fields:
+   - `type`: the element type (e.g., `'div'`, `'h1'`)
+   - `props`: an object containing all passed props plus a `children` array:
+     ```ts
+     props: {
+       ...props,
+       children: children.map(child =>
+         typeof child === 'object' ? child : createTextElement(child)
+       )
+     }
+     ```
+3. If a child is a string or number, wrap it in a `createTextElement(text)` helper returning `{ type: "TEXT_ELEMENT", props: { nodeValue: text, children: [] } }`.
+

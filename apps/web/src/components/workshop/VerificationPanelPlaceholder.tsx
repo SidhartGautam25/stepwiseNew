@@ -5,10 +5,13 @@ import { Button } from '../ui/Button';
 
 interface VerificationPanelPlaceholderProps {
   stepSlug: string;
+  workshopSlug?: string;
+  onOpenStarterModal?: () => void;
 }
 
 export function VerificationPanelPlaceholder({
   stepSlug,
+  onOpenStarterModal,
 }: VerificationPanelPlaceholderProps) {
   return (
     <div className="w-full xl:w-80 shrink-0 space-y-4">
@@ -47,12 +50,24 @@ export function VerificationPanelPlaceholder({
             </div>
           </div>
 
-          <Button variant="outline" size="sm" className="w-full text-slate-400" disabled>
-            Awaiting Git Push...
-          </Button>
+          <div className="space-y-2 pt-1">
+            <Button variant="outline" size="sm" className="w-full text-slate-400" disabled>
+              Awaiting Git Push...
+            </Button>
+
+            {onOpenStarterModal && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onOpenStarterModal}
+                className="w-full text-xs text-emerald-400 hover:text-emerald-300"
+              >
+                📦 Download Starter & Git Instructions
+              </Button>
+            )}
+          </div>
         </CardContent>
       </Card>
     </div>
   );
 }
-

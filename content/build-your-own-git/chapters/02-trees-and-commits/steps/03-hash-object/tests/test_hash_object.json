@@ -1,0 +1,6 @@
+{
+  "test_id": "test_git_hash_object_blob",
+  "name": "Hash and write blob object",
+  "assertion": "hash-object -w writes zlib compressed object matching sha-1"
+}
+

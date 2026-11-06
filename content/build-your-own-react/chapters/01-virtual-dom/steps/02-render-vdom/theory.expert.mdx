@@ -1,0 +1,5 @@
+# Theory: DOM Mutation Lifecycle (Expert)
+
+In classic React (React 15 and earlier), reconciliation and DOM mutations occurred synchronously in a single pass (Stack Reconciler).
+While straightforward, stack reconciliation binds memory and CPU time to $O(N)$ depth, preventing preemption by higher-priority work.
+

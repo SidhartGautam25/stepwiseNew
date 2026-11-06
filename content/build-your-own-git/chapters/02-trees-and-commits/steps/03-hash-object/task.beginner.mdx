@@ -1,0 +1,16 @@
+# Task: Implement git hash-object (Beginner)
+
+Your program should respond to the `hash-object -w <filename>` command:
+```bash
+your_git hash-object -w test.txt
+```
+
+### Instructions
+1. Read the raw bytes of `<filename>`.
+2. Format the object header: `blob <size>\0<content>`
+   (where `<size>` is the length of `<content>` in bytes).
+3. Compute the SHA-1 hash of the combined header + content.
+4. Compress the combined byte stream using `zlib`.
+5. Write the compressed file into `.git/objects/<first_2_chars>/<remaining_38_chars>`.
+6. Print the 40-character hexadecimal SHA-1 string to stdout.
+

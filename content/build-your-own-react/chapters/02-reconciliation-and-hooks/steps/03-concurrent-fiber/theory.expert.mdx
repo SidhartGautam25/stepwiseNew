@@ -1,0 +1,5 @@
+# Theory: Cooperative Multitasking (Expert)
+
+React's scheduler simulates green threading in JavaScript by yielding to the browser event loop via `MessageChannel` or `requestIdleCallback`.
+Fibers function as custom virtual stack frames that survive yield boundaries.
+

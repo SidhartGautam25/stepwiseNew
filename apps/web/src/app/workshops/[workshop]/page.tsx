@@ -1,20 +1,42 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useWorkshopOverview } from '../../../hooks/use-workshop-overview';
+import { useEnrollment } from '../../../hooks/use-enrollment';
 import { Badge } from '../../../components/ui/Badge';
 import { Button } from '../../../components/ui/Button';
 import { Card, CardHeader, CardTitle, CardContent } from '../../../components/ui/Card';
 import { Skeleton } from '../../../components/ui/Skeleton';
+import { StarterDownloadModal } from '../../../components/workshop/StarterDownloadModal';
 
 export default function WorkshopOverviewPage() {
   const params = useParams();
   const workshopSlug = String(params.workshop);
   const { workshop, isLoading, isError, error, refetch } = useWorkshopOverview(workshopSlug);
 
+  const {
+    progress,
+    isEnrolled,
+    enrolledLanguage,
+    enroll,
+    isEnrolling,
+    starterInfo,
+    fetchStarter,
+    isDownloadModalOpen,
+    setDownloadModalOpen,
+  } = useEnrollment(workshopSlug);
+
   const [selectedLanguage, setSelectedLanguage] = useState<string>('go');
+
+  useEffect(() => {
+    if (enrolledLanguage) {
+      setSelectedLanguage(enrolledLanguage);
+    } else if (workshop?.languages && workshop.languages.length > 0) {
+      setSelectedLanguage(workshop.languages[0]);
+    }
+  }, [enrolledLanguage, workshop?.languages]);
 
   if (isLoading) {
     return (
@@ -45,6 +67,28 @@ export default function WorkshopOverviewPage() {
 
   const firstChapter = workshop.chapters[0];
   const firstStep = firstChapter?.steps[0];
+  const firstStepUrl =
+    firstStep && firstChapter
+      ? `/workshops/${workshop.slug}/chapters/${firstChapter.slug}/steps/${firstStep.slug}`
+      : undefined;
+
+  // Compute step statuses from enrollment progress
+  const stepStatusMap: Record<string, string> = {};
+  if (progress?.steps) {
+    for (const s of progress.steps) {
+      stepStatusMap[s.stepSlug] = s.status;
+    }
+  }
+
+  const handleEnrollOrDownload = async () => {
+    if (isEnrolled && starterInfo) {
+      setDownloadModalOpen(true);
+    } else if (isEnrolled) {
+      await fetchStarter(selectedLanguage);
+    } else {
+      await enroll(selectedLanguage);
+    }
+  };
 
   return (
     <div className="space-y-10 max-w-5xl mx-auto py-6">
@@ -55,6 +99,11 @@ export default function WorkshopOverviewPage() {
           <span className="text-xs font-mono text-slate-400">
             {workshop.totalSteps} Total Steps • {workshop.estimatedTime}
           </span>
+          {isEnrolled && (
+            <Badge variant="indigo" className="font-mono">
+              Enrolled ({enrolledLanguage})
+            </Badge>
+          )}
         </div>
 
         <h1 className="text-4xl font-extrabold tracking-tight text-white">
@@ -88,17 +137,29 @@ export default function WorkshopOverviewPage() {
             </div>
           </div>
 
-          {firstStep && firstChapter && (
-            <div className="pt-5 sm:pt-0">
-              <Link
-                href={`/workshops/${workshop.slug}/chapters/${firstChapter.slug}/steps/${firstStep.slug}`}
-              >
-                <Button variant="primary" size="lg" className="shadow-lg shadow-emerald-500/20">
-                  Start Step 1: {firstStep.title} →
+          <div className="pt-5 sm:pt-0 flex flex-wrap items-center gap-3">
+            <Button
+              variant="primary"
+              size="lg"
+              className="shadow-lg shadow-emerald-500/20"
+              onClick={handleEnrollOrDownload}
+              disabled={isEnrolling}
+            >
+              {isEnrolling
+                ? 'Preparing Starter...'
+                : isEnrolled
+                ? '⬇ Download Starter Package'
+                : `Enroll & Download Starter (${selectedLanguage}) →`}
+            </Button>
+
+            {firstStepUrl && (
+              <Link href={firstStepUrl}>
+                <Button variant="outline" size="lg">
+                  Go to Step 1 →
                 </Button>
               </Link>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
 
@@ -169,13 +230,20 @@ export default function WorkshopOverviewPage() {
 
       {/* Syllabus: Chapters and Steps */}
       <div className="space-y-6">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight text-white">
-            Workshop Syllabus ({workshop.totalSteps} Steps)
-          </h2>
-          <p className="text-sm text-slate-400">
-            Chapters group steps only. Steps are unlocked sequentially across chapters.
-          </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold tracking-tight text-white">
+              Workshop Syllabus ({workshop.totalSteps} Steps)
+            </h2>
+            <p className="text-sm text-slate-400">
+              Steps are sequential. Complete each step by pushing to GitHub to unlock subsequent steps.
+            </p>
+          </div>
+          {isEnrolled && (
+            <span className="text-xs font-mono text-emerald-400 bg-emerald-950/60 border border-emerald-800/80 px-2.5 py-1 rounded-full">
+              Progression Active
+            </span>
+          )}
         </div>
 
         <div className="space-y-6">
@@ -198,38 +266,70 @@ export default function WorkshopOverviewPage() {
                 </span>
               </div>
 
-              <div className="divide-y divide-slate-800/60 p-2">
-                {chapter.steps.map((step) => (
-                  <Link
-                    key={step.id}
-                    href={`/workshops/${workshop.slug}/chapters/${chapter.slug}/steps/${step.slug}`}
-                    className="p-3.5 flex items-center justify-between hover:bg-slate-800/40 rounded-xl transition group"
-                  >
-                    <div className="flex items-center space-x-3">
-                      <span className="h-6 w-6 rounded-md bg-slate-800 text-slate-300 font-mono text-xs flex items-center justify-center font-semibold group-hover:bg-emerald-500 group-hover:text-slate-950 transition">
-                        {step.globalOrder}
-                      </span>
-                      <span className="text-sm font-medium text-slate-200 group-hover:text-white transition">
-                        {step.title}
-                      </span>
-                    </div>
+              <div className="divide-y divide-slate-800/60">
+                {chapter.steps.map((step) => {
+                  const status =
+                    stepStatusMap[step.slug] ||
+                    (step.globalOrder === 1 ? 'AVAILABLE' : 'LOCKED');
+                  const isLocked = status === 'LOCKED';
 
-                    <div className="flex items-center space-x-3">
-                      <span className="text-xs text-slate-500 font-mono">
-                        {step.testCount} tests
-                      </span>
-                      <span className="text-slate-500 group-hover:text-emerald-400 transition">
-                        →
-                      </span>
+                  return (
+                    <div
+                      key={step.id}
+                      className="p-4 flex items-center justify-between hover:bg-slate-800/40 transition group"
+                    >
+                      <div className="flex items-center space-x-3">
+                        <span className="flex items-center justify-center h-6 w-6 rounded-md bg-slate-800 text-xs font-mono text-slate-400 group-hover:bg-emerald-500 group-hover:text-slate-950 font-bold transition">
+                          {step.globalOrder}
+                        </span>
+                        <div>
+                          <div className="text-sm font-semibold text-slate-200">
+                            {step.title}
+                          </div>
+                          <div className="text-xs text-slate-500 font-mono">
+                            {step.testCount} automated test{step.testCount === 1 ? '' : 's'}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        {status === 'COMPLETED' ? (
+                          <Badge variant="emerald">Completed ✓</Badge>
+                        ) : status === 'AVAILABLE' ? (
+                          <Badge variant="indigo">Available</Badge>
+                        ) : (
+                          <Badge variant="outline">Locked 🔒</Badge>
+                        )}
+
+                        <Link
+                          href={`/workshops/${workshop.slug}/chapters/${chapter.slug}/steps/${step.slug}`}
+                        >
+                          <Button
+                            variant={isLocked ? 'outline' : 'primary'}
+                            size="sm"
+                            className={isLocked ? 'opacity-70' : ''}
+                          >
+                            View Step →
+                          </Button>
+                        </Link>
+                      </div>
                     </div>
-                  </Link>
-                ))}
+                  );
+                })}
               </div>
             </div>
           ))}
         </div>
       </div>
+
+      {/* Starter Download Modal */}
+      <StarterDownloadModal
+        isOpen={isDownloadModalOpen}
+        onClose={() => setDownloadModalOpen(false)}
+        starterInfo={starterInfo}
+        firstStepUrl={firstStepUrl}
+        firstStepTitle={firstStep ? `Start Step 1: ${firstStep.title}` : 'Start Step 1'}
+      />
     </div>
   );
 }
-

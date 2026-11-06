@@ -1,0 +1,26 @@
+# Task: Implement git commit-tree (Beginner)
+
+Your program should respond to the `commit-tree <tree_sha> -m <message> [-p <parent_sha>]` command:
+```bash
+your_git commit-tree d8329fc1cc938780ffdd9f94e0d364e0ea74f579 -m "Initial commit"
+```
+
+### Instructions
+1. Parse CLI flags:
+   - `<tree_sha>`
+   - `-m <message>`
+   - Optional `-p <parent_sha>`
+2. Construct the commit object content:
+   ```text
+   tree <tree_sha>
+   parent <parent_sha>
+   author Engineer <engineer@example.com> 1700000000 +0000
+   committer Engineer <engineer@example.com> 1700000000 +0000
+
+   <message>
+   ```
+   (omit the `parent` line if no parent is provided).
+3. Prepend `commit <size>\0`.
+4. Compute the SHA-1 hash, compress with `zlib`, and save into `.git/objects/`.
+5. Print the new 40-character commit hash to stdout.
+

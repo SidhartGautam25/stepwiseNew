@@ -1,0 +1,6 @@
+{
+  "test_id": "test_git_init_directory_structure",
+  "name": "Verify .git directory structure",
+  "assertion": "Creates .git/objects and .git/HEAD"
+}
+

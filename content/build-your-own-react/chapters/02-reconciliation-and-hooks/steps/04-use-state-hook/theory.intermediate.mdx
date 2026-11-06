@@ -1,0 +1,9 @@
+# Theory: Double Buffering with Alternates (Intermediate)
+
+React uses **double buffering**, a technique borrowed from video game graphics.
+There are two fiber trees in memory simultaneously:
+- `currentRoot`: the tree currently rendered to the browser screen.
+- `wipRoot` (work in progress): the new tree being calculated in memory during the render phase.
+Every fiber in the WIP tree holds an `alternate` pointer to its corresponding fiber in the current tree.
+This allows hooks and DOM nodes to be recycled without recreating them from scratch.
+

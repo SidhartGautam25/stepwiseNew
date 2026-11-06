@@ -1,0 +1,6 @@
+{
+  "test_id": "test_npm_download_tarball",
+  "name": "Download and extract tarball",
+  "assertion": "Verifies sha512 integrity and unpacks files into destination"
+}
+

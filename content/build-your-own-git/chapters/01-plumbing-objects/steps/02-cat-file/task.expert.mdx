@@ -1,0 +1,9 @@
+# Task: Implement git cat-file (Expert)
+
+### Specification
+CLI invocation: `cat-file -p <hash>`
+- Verify 40-character hex hash formatting.
+- Decompress loose object zlib stream using non-streaming or streaming buffers.
+- Split header at the null byte sentinel `0x00`. Validate size integrity: length of payload must match header byte count.
+- Emit verbatim payload to `os.Stdout`.
+

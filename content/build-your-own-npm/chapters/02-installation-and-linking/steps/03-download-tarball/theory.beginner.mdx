@@ -1,0 +1,8 @@
+# Theory: Tar and Gzip Formats (Beginner)
+
+Why are npm packages `.tgz` files?
+- `.tar` (Tape Archive) bundles multiple files and folders into a single byte stream.
+- `.gz` (Gzip) compresses that byte stream to make downloads fast over the internet.
+Inside every npm tarball, all package code is stored inside a folder named `package/`.
+When you install a package into `node_modules/my-pkg`, npm strips off `package/` so the files sit directly under `node_modules/my-pkg/`!
+

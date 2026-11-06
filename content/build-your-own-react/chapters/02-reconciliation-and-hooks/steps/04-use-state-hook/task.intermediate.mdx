@@ -1,0 +1,10 @@
+# Task: Implement useState (Intermediate)
+
+Implement functional component execution and stateful closure hooks with update queues.
+
+### Requirements
+- Detect functional component fibers where `fiber.type instanceof Function`.
+- Initialize `hooks` array and maintain invocation index across multiple hook calls within the same render.
+- Reconcile previous hook state via `alternate` fiber pointer.
+- Expose `setState` updater that enqueues actions and marks root for re-reconciliation.
+

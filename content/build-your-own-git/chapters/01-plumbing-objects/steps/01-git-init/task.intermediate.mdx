@@ -1,0 +1,9 @@
+# Task: Implement git init (Intermediate)
+
+Handle `init` subcommand and ensure repository initialization idempotency.
+
+### Requirements
+- Create directory hierarchy `.git/objects` and `.git/refs/heads` with permission 0755.
+- Write `.git/HEAD` with `ref: refs/heads/main\n`.
+- Ensure subsequent calls do not corrupt an already initialized `.git` directory.
+

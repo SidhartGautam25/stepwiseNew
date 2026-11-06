@@ -5,9 +5,11 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useWorkshopOverview } from '@/hooks/use-workshop-overview';
 import { useStepDetail } from '@/hooks/use-step-detail';
+import { useEnrollment } from '@/hooks/use-enrollment';
 import { StepsRail } from '@/components/workshop/StepsRail';
 import { StepContentPanel } from '@/components/workshop/StepContentPanel';
 import { VerificationPanelPlaceholder } from '@/components/workshop/VerificationPanelPlaceholder';
+import { StarterDownloadModal } from '@/components/workshop/StarterDownloadModal';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { Button } from '@/components/ui/Button';
 
@@ -18,6 +20,14 @@ export default function StepWorkspacePage() {
   const stepSlug = String(params.step);
 
   const { workshop, isLoading: isWorkshopLoading } = useWorkshopOverview(workshopSlug);
+  const {
+    progress,
+    starterInfo,
+    fetchStarter,
+    isDownloadModalOpen,
+    setDownloadModalOpen,
+  } = useEnrollment(workshopSlug);
+
   const {
     step,
     isLoading: isStepLoading,
@@ -56,6 +66,32 @@ export default function StepWorkspacePage() {
     );
   }
 
+  // Calculate real step statuses
+  const stepStatuses: Record<string, 'LOCKED' | 'AVAILABLE' | 'COMPLETED'> = {};
+  if (progress?.steps && progress.steps.length > 0) {
+    for (const s of progress.steps) {
+      stepStatuses[s.stepSlug] = s.status;
+    }
+  } else {
+    // If not enrolled yet, first step is available, remainder locked
+    let first = true;
+    for (const ch of workshop.chapters) {
+      for (const st of ch.steps) {
+        stepStatuses[st.slug] = first ? 'AVAILABLE' : 'LOCKED';
+        first = false;
+      }
+    }
+  }
+
+  const handleOpenStarterModal = async () => {
+    if (starterInfo) {
+      setDownloadModalOpen(true);
+    } else {
+      const lang = progress?.language || workshop.languages[0] || 'go';
+      await fetchStarter(lang);
+    }
+  };
+
   return (
     <div className="space-y-4 py-2">
       {/* Breadcrumb Navigation */}
@@ -78,6 +114,7 @@ export default function StepWorkspacePage() {
           workshopSlug={workshopSlug}
           chapters={workshop.chapters}
           activeStepSlug={stepSlug}
+          stepStatuses={stepStatuses}
         />
 
         {/* Center: Step Task & Theory Content with Live Level Switcher */}
@@ -92,8 +129,19 @@ export default function StepWorkspacePage() {
         />
 
         {/* Right: Verification Engine Panel */}
-        <VerificationPanelPlaceholder stepSlug={stepSlug} />
+        <VerificationPanelPlaceholder
+          stepSlug={stepSlug}
+          workshopSlug={workshopSlug}
+          onOpenStarterModal={handleOpenStarterModal}
+        />
       </div>
+
+      {/* Starter Download Modal */}
+      <StarterDownloadModal
+        isOpen={isDownloadModalOpen}
+        onClose={() => setDownloadModalOpen(false)}
+        starterInfo={starterInfo}
+      />
     </div>
   );
 }

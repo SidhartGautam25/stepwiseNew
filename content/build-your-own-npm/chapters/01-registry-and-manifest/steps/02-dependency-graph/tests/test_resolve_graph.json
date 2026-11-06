@@ -1,0 +1,6 @@
+{
+  "test_id": "test_npm_resolve_graph",
+  "name": "Dependency graph cycle handling",
+  "assertion": "Resolves dependency tree without crashing on cycles"
+}
+

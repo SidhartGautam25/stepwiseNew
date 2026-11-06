@@ -6,6 +6,9 @@ export const API_CONFIG = {
     workshopOverview: (slug: string) => `/v1/workshops/${slug}`,
     stepDetail: (workshopSlug: string, stepSlug: string, level?: string) =>
       `/v1/workshops/${workshopSlug}/steps/${stepSlug}${level ? `?level=${level}` : ''}`,
+    enroll: (slug: string) => `/v1/workshops/${slug}/enroll`,
+    workshopProgress: (slug: string) => `/v1/workshops/${slug}/progress`,
+    starterInfo: (slug: string, language: string) => `/v1/starters/${slug}/${language}`,
     realtimeEvents: '/v1/realtime/events',
     healthGateway: '/health',
   },
@@ -15,4 +18,3 @@ export const API_CONFIG = {
   },
   timeoutMs: 15000,
 } as const;
-

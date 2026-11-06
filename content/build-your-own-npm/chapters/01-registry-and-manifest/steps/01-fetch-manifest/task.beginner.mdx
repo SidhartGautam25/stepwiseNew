@@ -1,0 +1,19 @@
+# Task: Query Registry Manifests (Beginner)
+
+Your program should respond to the `info <package-name> [range]` command:
+```bash
+your_pm info chalk "^5.0.0"
+```
+
+### Instructions
+1. Send an HTTP GET request to `https://registry.npmjs.org/<package-name>`.
+2. Parse the returned JSON response:
+   - Extract the `versions` object containing all releases.
+   - If no range is specified, inspect `dist-tags.latest`.
+3. If a range is provided, find the highest version matching the range.
+4. Output the resolved version and tarball download URL:
+   ```text
+   Resolved: chalk@5.3.0
+   Tarball: https://registry.npmjs.org/chalk/-/chalk-5.3.0.tgz
+   ```
+

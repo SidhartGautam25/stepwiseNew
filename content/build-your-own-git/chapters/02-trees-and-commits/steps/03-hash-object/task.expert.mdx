@@ -1,0 +1,8 @@
+# Task: Implement git hash-object (Expert)
+
+### Specification
+CLI invocation: `hash-object [-w] <file>`
+- Compute SHA-1 over `fmt.Sprintf("blob %d\x00%s", len(payload), payload)`.
+- Atomically persist compressed object to loose storage when `-w` flag is provided.
+- Return 40-character hexadecimal representation on standard output.
+

@@ -1,0 +1,9 @@
+# Theory: Content-Addressable Storage (Beginner)
+
+Why is Git called a **content-addressable storage** system?
+In normal filesystems, files are found by their names (like `/home/user/document.txt`).
+In Git, files are found by the **hash of their contents**!
+- If two files with completely different names have identical contents, Git only stores ONE blob in `.git/objects/`.
+- If you change a single character in a file, its hash changes completely, resulting in a new object.
+- It is mathematically impossible to change an existing object without changing its hash.
+
