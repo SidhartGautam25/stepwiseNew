@@ -1,0 +1,58 @@
+{
+  "extends": "next/core-web-vitals",
+  "rules": {
+    "no-restricted-imports": [
+      "error",
+      {
+        "paths": [
+          {
+            "name": "@supabase/supabase-js",
+            "message": "Direct Supabase client usage is strictly forbidden in apps/web. All authentication must flow through the Handrail API Gateway (/v1/auth)."
+          },
+          {
+            "name": "@supabase/ssr",
+            "message": "Direct Supabase SSR usage is strictly forbidden in apps/web. All authentication must flow through the Handrail API Gateway (/v1/auth)."
+          }
+        ],
+        "patterns": [
+          {
+            "group": ["**/utils/auth/client", "**/utils/auth/client.js"],
+            "message": "Do not import utils/auth/client directly into UI components. Use useAuth() or TanStack Query hooks instead."
+          }
+        ]
+      }
+    ]
+  },
+  "overrides": [
+    {
+      "files": [
+        "src/providers/**/*",
+        "src/hooks/**/*",
+        "src/queries/**/*",
+        "src/app/auth/refresh/**/*",
+        "src/utils/auth/**/*",
+        "**/*.spec.ts",
+        "**/*.spec.tsx",
+        "**/*.test.ts",
+        "**/*.test.tsx"
+      ],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              {
+                "name": "@supabase/supabase-js",
+                "message": "Direct Supabase client usage is strictly forbidden in apps/web."
+              },
+              {
+                "name": "@supabase/ssr",
+                "message": "Direct Supabase SSR usage is strictly forbidden in apps/web."
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,4 +1,12 @@
 export const QUERY_KEYS = {
+  auth: {
+    session: ['auth', 'session'] as const,
+  },
+  profile: {
+    me: ['profile', 'me'] as const,
+    preferences: ['profile', 'preferences'] as const,
+    activity: ['profile', 'activity'] as const,
+  },
   workshops: {
     all: ['workshops'] as const,
     overview: (slug: string) => ['workshops', slug] as const,

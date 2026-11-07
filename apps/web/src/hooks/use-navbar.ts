@@ -12,7 +12,7 @@ export interface NavLinkItem {
 export function useNavbar() {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, token, signOut, signInWithGitHub } = useAuth();
+  const { user, status, logout } = useAuth();
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
   const links: NavLinkItem[] = [
@@ -22,6 +22,16 @@ export function useNavbar() {
       href: '/workshops',
       isActive: pathname.startsWith('/workshops'),
     },
+    ...(user
+      ? [
+          {
+            id: 'dashboard',
+            label: 'Dashboard',
+            href: '/dashboard',
+            isActive: pathname.startsWith('/dashboard'),
+          },
+        ]
+      : []),
     {
       id: 'reviews',
       label: 'Reviews',
@@ -38,26 +48,30 @@ export function useNavbar() {
 
   const handleLoginClick = () => {
     if (user) {
-      signOut();
+      logout();
     } else {
-      // In development, trigger GitHub sign-in or redirect
-      signInWithGitHub();
+      router.push('/login');
     }
   };
 
   const handleGetStartedClick = () => {
-    router.push('/workshops');
+    if (user) {
+      router.push('/dashboard');
+    } else {
+      router.push('/signup');
+    }
   };
 
   return {
     links,
     user,
-    token,
+    status,
+    isLoading: status === 'loading',
     isAuthenticated: Boolean(user),
     isLoginModalOpen,
     setIsLoginModalOpen,
     handleLoginClick,
     handleGetStartedClick,
+    logout,
   };
 }
-

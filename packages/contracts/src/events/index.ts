@@ -5,6 +5,7 @@ export const RMQ_QUEUES = {
 } as const;
 
 export const EVENT_PATTERNS = {
+  USER_REGISTERED: 'auth.user.registered',
   RUN_QUEUED: 'run.queued',
   RUN_STARTED: 'run.started',
   RUN_PROGRESS: 'run.progress',
@@ -13,6 +14,22 @@ export const EVENT_PATTERNS = {
   RUN_FAILED: 'run.failed',
   STEP_UNLOCKED: 'step.unlocked',
 } as const;
+
+export interface EventEnvelope<T = unknown> {
+  eventId: string;
+  type: string;
+  version: string;
+  occurredAt: string;
+  correlationId: string;
+  data: T;
+}
+
+export interface UserRegisteredV1 {
+  userId: string;
+  email: string;
+  displayName?: string;
+  provider: string;
+}
 
 export interface RunStartedPayload {
   runId: string;

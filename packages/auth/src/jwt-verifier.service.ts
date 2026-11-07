@@ -87,11 +87,15 @@ export class JwtVerifierService {
       throw new UnauthorizedException('Token payload missing email claim');
     }
 
+    const appMetadata = payload['app_metadata'] as Record<string, unknown> | undefined;
+    const roles: string[] = (Array.isArray(appMetadata?.['roles']) ? appMetadata?.['roles'] : []) as string[];
+
     return {
       id: sub,
       email,
       role: (payload['role'] as string) || 'authenticated',
-      appMetadata: payload['app_metadata'] as Record<string, unknown> | undefined,
+      roles,
+      appMetadata,
       userMetadata: payload['user_metadata'] as Record<string, unknown> | undefined,
     };
   }
