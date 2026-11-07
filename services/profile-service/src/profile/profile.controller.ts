@@ -1,11 +1,14 @@
-import { Controller, Get, Patch, Body } from '@nestjs/common';
+import { Controller, Inject, Get, Patch, Body } from '@nestjs/common';
 import { ProfileService } from './profile.service.js';
 import { CurrentUser } from '@app/auth';
 import type { AuthenticatedUser } from '@app/contracts';
 
 @Controller('v1')
 export class ProfileController {
-  constructor(private readonly profileService: ProfileService) {}
+  constructor(
+    @Inject(ProfileService)
+    private readonly profileService: ProfileService,
+  ) {}
 
   @Get('profile')
   async getProfile(@CurrentUser() user: AuthenticatedUser) {

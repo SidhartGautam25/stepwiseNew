@@ -12,13 +12,21 @@ function SignupForm() {
   const searchParams = useSearchParams();
   const rawNext = searchParams.get('next');
   const targetNext = validateRedirectTarget(rawNext, '/dashboard');
+  const oauthError = searchParams.get('error');
+  const initialError = oauthError
+    ? oauthError === 'invalid_pkce_session'
+      ? 'OAuth session expired or was invalid. Please try signing in again.'
+      : oauthError === 'github_oauth_not_configured'
+      ? 'GitHub OAuth is not configured yet. Set GITHUB_OAUTH_ENABLED=true, GITHUB_CLIENT_ID, and GITHUB_CLIENT_SECRET in .env, or sign up with email.'
+      : 'GitHub sign-in could not be completed. Please try again or use email.'
+    : null;
 
   const { signup, startGitHubOAuth } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(initialError);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 

@@ -1,4 +1,4 @@
-import { Injectable, Logger, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import { Injectable, Inject, Logger, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import amqp, { AmqpConnectionManager, ChannelWrapper } from 'amqp-connection-manager';
 import { ProfileService } from '../profile/profile.service.js';
 import type { EventEnvelope, UserRegisteredV1 } from '@app/contracts';
@@ -14,7 +14,10 @@ export class AuthEventConsumerService implements OnModuleInit, OnModuleDestroy {
   private connection: AmqpConnectionManager | null = null;
   private channelWrapper: ChannelWrapper | null = null;
 
-  constructor(private readonly profileService: ProfileService) {}
+  constructor(
+    @Inject(ProfileService)
+    private readonly profileService: ProfileService,
+  ) {}
 
   async onModuleInit() {
     const rabbitmqUrl = process.env.RABBITMQ_URL || 'amqp://handrail:handrail_password@localhost:5672';

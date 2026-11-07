@@ -69,6 +69,43 @@ services:
       timeout: 5s
       retries: 5
 
+  auth:
+    image: supabase/gotrue:v2.164.0
+    container_name: handrail-auth
+    restart: unless-stopped
+    env_file:
+      - ../.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      GOTRUE_API_HOST: 0.0.0.0
+      PORT: 9999
+      API_EXTERNAL_URL: http://localhost:54321
+      GOTRUE_DB_DRIVER: postgres
+      GOTRUE_DB_DATABASE_URL: postgres://handrail:handrail_password@postgres:5432/handrail_db?search_path=auth
+      GOTRUE_SITE_URL: http://localhost:3000
+      GOTRUE_URI_ALLOW_LIST: http://localhost:3000/*,http://localhost:4000/*
+      GOTRUE_JWT_SECRET: super-secret-jwt-token-with-minimum-32-chars-long!
+      GOTRUE_JWT_EXP: 3600
+      GOTRUE_JWT_AUD: authenticated
+      GOTRUE_JWT_DEFAULT_GROUP_NAME: authenticated
+      GOTRUE_JWT_ADMIN_ROLES: service_role
+      GOTRUE_DISABLE_SIGNUP: "false"
+      GOTRUE_EXTERNAL_EMAIL_ENABLED: "true"
+      GOTRUE_MAILER_AUTOCONFIRM: "true"
+      GOTRUE_EXTERNAL_GITHUB_ENABLED: "${GITHUB_OAUTH_ENABLED:-true}"
+      GOTRUE_EXTERNAL_GITHUB_CLIENT_ID: "${GITHUB_CLIENT_ID:-Ov23liai4nDsqS6bq7ei}"
+      GOTRUE_EXTERNAL_GITHUB_SECRET: "${GITHUB_CLIENT_SECRET:-eab8a7f9af4bb0964bb826b87bd64d58db3b4ae1}"
+      GOTRUE_EXTERNAL_GITHUB_REDIRECT_URI: "http://localhost:54321/callback"
+    ports:
+      - '54321:9999'
+    healthcheck:
+      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:9999/health']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
 volumes:
   postgres_data:
   rabbitmq_data:

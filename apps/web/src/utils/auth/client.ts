@@ -37,10 +37,12 @@ const BYPASS_REFRESH_PATHS = [
   '/v1/auth/refresh',
   '/v1/auth/confirm',
   '/v1/auth/password/forgot',
+  '/v1/auth/me',
 ];
 
 interface ApiFetchOptions extends RequestInit {
   _isRetry?: boolean;
+  bypassRefresh?: boolean;
 }
 
 /**
@@ -80,7 +82,7 @@ export async function apiFetch<T>(path: string, init: ApiFetchOptions = {}): Pro
   }
 
   // Handle 401 with single-flight refresh
-  const isBypassPath = BYPASS_REFRESH_PATHS.some((p) => cleanPath.startsWith(p));
+  const isBypassPath = init.bypassRefresh || BYPASS_REFRESH_PATHS.some((p) => cleanPath.startsWith(p));
   if (response.status === 401 && !isBypassPath && !init._isRetry) {
     const refreshed = await executeSingleFlightRefresh();
 
@@ -217,6 +219,7 @@ export async function getSession(): Promise<Session | null> {
   try {
     const user = await apiFetch<SessionUser>('/v1/auth/me', {
       method: 'GET',
+      bypassRefresh: true,
     });
 
     if (!user || !user.id) {

@@ -4,15 +4,24 @@ import { execSync } from 'node:child_process';
 
 // Load root .env
 const envPath = path.resolve(process.cwd(), '.env');
-if (fs.existsSync(envPath) && typeof (process as any).loadEnvFile === 'function') {
-  try {
-    (process as any).loadEnvFile(envPath);
-  } catch {
-    // ignore
+if (fs.existsSync(envPath)) {
+  const content = fs.readFileSync(envPath, 'utf-8');
+  for (const line of content.split('\n')) {
+    const trimmed = line.trim();
+    if (trimmed && !trimmed.startsWith('#') && trimmed.includes('=')) {
+      const idx = trimmed.indexOf('=');
+      const key = trimmed.slice(0, idx).trim();
+      const val = trimmed.slice(idx + 1).trim();
+      if (!process.env[key]) {
+        process.env[key] = val;
+      }
+    }
   }
 }
 
 const services = [
+  'auth-service',
+  'profile-service',
   'catalog-service',
   'starter-service',
   'verification-service',
@@ -20,6 +29,18 @@ const services = [
 ];
 
 console.log('[Handrail DB Sync] Pushing Prisma schemas to PostgreSQL...\n');
+
+console.log('[Handrail DB Sync] Ensuring extensions and auth schemas exist...\n');
+try {
+  execSync('tsx tools/init-auth-schema.ts', {
+    stdio: 'inherit',
+    env: process.env,
+    cwd: process.cwd(),
+    shell: true as any,
+  });
+} catch {
+  // Ignore if already prepared
+}
 
 let allSuccess = true;
 for (const service of services) {

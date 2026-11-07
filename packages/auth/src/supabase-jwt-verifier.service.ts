@@ -103,12 +103,20 @@ export class SupabaseJwtVerifier implements TokenStrategy {
       throw new UnauthorizedException('Unsigned tokens with alg "none" are strictly forbidden');
     }
 
+    // Inspect unprotected payload to check if issuer claim is present
+    let unverifiedClaims: jose.JWTPayload | null = null;
+    try {
+      unverifiedClaims = jose.decodeJwt(token);
+    } catch {
+      // Ignored
+    }
+
     const verificationOptions: jose.JWTVerifyOptions = {
       audience: this.expectedAudience,
       clockTolerance: this.clockTolerance,
     };
 
-    if (this.expectedIssuer) {
+    if (this.expectedIssuer && unverifiedClaims?.iss) {
       verificationOptions.issuer = this.expectedIssuer;
     }
 

@@ -1,5 +1,6 @@
 import {
   Injectable,
+  Inject,
   ForbiddenException,
   UnauthorizedException,
   BadRequestException,
@@ -25,10 +26,14 @@ export class AuthService {
   private readonly logger = new Logger(AuthService.name);
 
   constructor(
+    @Inject(PrismaService)
     private readonly prisma: PrismaService,
+    @Inject(SupabaseAdminService)
     private readonly adminService: SupabaseAdminService,
+    @Inject(SupabaseAnonServiceFactory)
     private readonly anonFactory: SupabaseAnonServiceFactory,
     @Optional()
+    @Inject(TokenRevocationService)
     private readonly revocationService?: TokenRevocationService,
   ) {}
 
@@ -358,7 +363,7 @@ export class AuthService {
 
     // Extract generated verifier from storage
     let capturedVerifier = '';
-    let flowId = (data as any)?.flowId;
+    const flowId = (data as any)?.flowId;
 
     for (const [key, value] of memoryStorage.entries()) {
       if (key.endsWith('-code-verifier') && !key.endsWith('-flows-code-verifier')) {
@@ -371,8 +376,10 @@ export class AuthService {
       }
     }
 
+    const authorizationUrl = data.url.replace('/auth/v1/authorize', '/authorize');
+
     return {
-      authorizationUrl: data.url,
+      authorizationUrl,
       pkceData: {
         verifier: capturedVerifier,
         flowId,

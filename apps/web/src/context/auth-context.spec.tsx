@@ -153,7 +153,10 @@ describe('A6.2 AuthContext & AuthProvider', () => {
       expiresAt: Math.floor(Date.now() / 1000) + 900,
     };
 
-    const logoutSpy = vi.spyOn(authClient, 'logout').mockResolvedValueOnce();
+    const logoutSpy = vi.spyOn(authClient, 'logout').mockResolvedValueOnce({
+      status: 'success',
+      message: 'Logged out',
+    });
 
     const { result } = renderHook(() => useAuth(), {
       wrapper: createWrapper(mockSession),

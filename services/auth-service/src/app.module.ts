@@ -16,6 +16,7 @@ import { OutboxPublisherService } from './outbox/outbox-publisher.service.js';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: ['.env', '../../.env', '../.env'],
     }),
     ThrottlerModule.forRoot([
       {

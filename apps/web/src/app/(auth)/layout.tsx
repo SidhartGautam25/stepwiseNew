@@ -11,12 +11,7 @@ export default function AuthLayout({
     <div className="min-h-screen bg-[#F7F4EE] flex flex-col justify-between p-4 sm:p-8">
       {/* Top Header */}
       <header className="w-full max-w-6xl mx-auto flex items-center justify-between py-4">
-        <Link href="/" className="flex items-center gap-2 group">
-          <HandrailLogo className="w-8 h-8" />
-          <span className="font-mono font-black text-xl tracking-tight text-black group-hover:underline">
-            HANDRAIL
-          </span>
-        </Link>
+        <HandrailLogo href="/" />
         <Link
           href="/workshops"
           className="font-mono text-xs font-bold uppercase tracking-wider text-zinc-700 hover:text-black border-2 border-black bg-white px-3 py-1.5 shadow-[2px_2px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px]"

@@ -1,9 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { PrismaService } from '../prisma.service.js';
 
 @Injectable()
 export class EnrollmentRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    @Inject(PrismaService)
+    private readonly prisma: PrismaService,
+  ) {}
 
   async findEnrollment(userId: string, workshopSlug: string, language: string) {
     return this.prisma.enrollment.findUnique({

@@ -1,5 +1,6 @@
 import {
   Controller,
+  Inject,
   Post,
   Get,
   Body,
@@ -10,6 +11,7 @@ import {
   UseGuards,
   HttpStatus,
   HttpCode,
+  Logger,
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { AuthService } from './auth.service.js';
@@ -23,10 +25,46 @@ import {
   clearPkceCookie,
 } from './utils/oauth.util.js';
 import { CORRELATION_ID_HEADER } from '@app/common';
+import fs from 'node:fs';
+import path from 'node:path';
+
+function reloadRootEnv() {
+  try {
+    const candidates = [
+      path.resolve(process.cwd(), '.env'),
+      path.resolve(process.cwd(), '../../.env'),
+      path.resolve(process.cwd(), '../.env'),
+    ];
+    for (const p of candidates) {
+      if (fs.existsSync(p)) {
+        const content = fs.readFileSync(p, 'utf-8');
+        for (const line of content.split('\n')) {
+          const trimmed = line.trim();
+          if (trimmed && !trimmed.startsWith('#') && trimmed.includes('=')) {
+            const idx = trimmed.indexOf('=');
+            const key = trimmed.slice(0, idx).trim();
+            const val = trimmed.slice(idx + 1).trim();
+            if (val) {
+              process.env[key] = val;
+            }
+          }
+        }
+        break;
+      }
+    }
+  } catch {
+    // Ignore
+  }
+}
 
 @Controller()
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  private readonly logger = new Logger(AuthController.name);
+
+  constructor(
+    @Inject(AuthService)
+    private readonly authService: AuthService,
+  ) {}
 
   // ==========================================
   // CORE PUBLIC ENDPOINTS (/v1/auth)
@@ -127,19 +165,38 @@ export class AuthController {
     @Req() req: Request,
     @Res() res: Response,
   ) {
+    reloadRootEnv();
     const validatedNext = validateNextRedirect(nextParam);
+    const frontendUrl = (process.env.FRONTEND_URL || 'http://localhost:3000').replace(/\/+$/, '');
 
-    const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'http';
-    const host = req.headers['x-forwarded-host'] || req.headers['host'] || 'localhost:4000';
-    const redirectUri = `${protocol}://${host}/v1/auth/oauth/callback`;
+    const isGitHubConfigured =
+      process.env.GITHUB_OAUTH_ENABLED === 'true' &&
+      Boolean(process.env.GITHUB_CLIENT_ID);
 
-    const { authorizationUrl, pkceData } = await this.authService.startOAuthGitHub(
-      redirectUri,
-      validatedNext,
-    );
+    if (!isGitHubConfigured) {
+      const returnPath = req.headers['referer']?.includes('/signup') ? '/signup' : '/login';
+      return res.redirect(`${frontendUrl}${returnPath}?error=github_oauth_not_configured`);
+    }
 
-    setPkceCookie(res, pkceData);
-    return res.redirect(authorizationUrl);
+    const publicApiUrl = (
+      process.env.API_GATEWAY_URL ||
+      process.env.NEXT_PUBLIC_API_URL ||
+      `${req.headers['x-forwarded-proto'] || req.protocol || 'http'}://${req.headers['x-forwarded-host'] || 'localhost:4000'}`
+    ).replace(/\/+$/, '');
+    const redirectUri = `${publicApiUrl}/v1/auth/oauth/callback`;
+
+    try {
+      const { authorizationUrl, pkceData } = await this.authService.startOAuthGitHub(
+        redirectUri,
+        validatedNext,
+      );
+
+      setPkceCookie(res, pkceData);
+      return res.redirect(authorizationUrl);
+    } catch (err: any) {
+      this.logger.error(`OAuth start failed: ${err?.message || err}`, err?.stack);
+      return res.redirect(`${frontendUrl}/login?error=oauth_failed`);
+    }
   }
 
   @Public()
@@ -151,9 +208,10 @@ export class AuthController {
   ) {
     const meta = this.extractMeta(req);
     const pkceData = extractPkceCookie(req);
+    const frontendUrl = (process.env.FRONTEND_URL || 'http://localhost:3000').replace(/\/+$/, '');
 
     if (!pkceData) {
-      return res.redirect('/login?error=invalid_pkce_session');
+      return res.redirect(`${frontendUrl}/login?error=invalid_pkce_session`);
     }
 
     try {
@@ -170,10 +228,15 @@ export class AuthController {
       });
 
       clearPkceCookie(res);
-      return res.redirect(result.next);
-    } catch {
+      const targetUrl =
+        result.next.startsWith('http://') || result.next.startsWith('https://')
+          ? result.next
+          : `${frontendUrl}/${result.next.replace(/^\/+/, '')}`;
+      return res.redirect(targetUrl);
+    } catch (err: any) {
+      this.logger.error(`OAuth callback exchange failed: ${err?.message || err}`, err?.stack);
       clearPkceCookie(res);
-      return res.redirect('/login?error=oauth_failed');
+      return res.redirect(`${frontendUrl}/login?error=oauth_failed`);
     }
   }
 

@@ -1,11 +1,14 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Inject, Logger } from '@nestjs/common';
 import { EnrollmentRepository } from './enrollment.repository.js';
 
 @Injectable()
 export class EnrollmentService {
   private readonly logger = new Logger(EnrollmentService.name);
 
-  constructor(private readonly repository: EnrollmentRepository) {}
+  constructor(
+    @Inject(EnrollmentRepository)
+    private readonly repository: EnrollmentRepository,
+  ) {}
 
   async enroll(userId: string, workshopSlug: string, language: string) {
     const existing = await this.repository.findEnrollment(userId, workshopSlug, language);

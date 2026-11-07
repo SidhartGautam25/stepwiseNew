@@ -1,11 +1,14 @@
-import { Controller, Post, Get, Param, Body, Query } from '@nestjs/common';
+import { Controller, Inject, Post, Get, Param, Body, Query } from '@nestjs/common';
 import { EnrollmentService } from './enrollment.service.js';
 import { CurrentUser } from '@app/auth';
 import type { AuthenticatedUser } from '@app/contracts';
 
 @Controller('v1')
 export class EnrollmentController {
-  constructor(private readonly enrollmentService: EnrollmentService) {}
+  constructor(
+    @Inject(EnrollmentService)
+    private readonly enrollmentService: EnrollmentService,
+  ) {}
 
   @Post('workshops/:slug/enroll')
   async enroll(

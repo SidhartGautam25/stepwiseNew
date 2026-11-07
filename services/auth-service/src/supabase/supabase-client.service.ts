@@ -1,6 +1,21 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
+/**
+ * Normalizes requests to standalone Supabase GoTrue instances where endpoints
+ * are mounted directly at root (e.g. /token, /signup, /user) rather than behind
+ * Kong's /auth/v1/ routing prefix.
+ */
+function createSupabaseFetch() {
+  return (input: any, init?: any) => {
+    let url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input?.url;
+    if (typeof url === 'string' && url.includes('/auth/v1/')) {
+      url = url.replace('/auth/v1/', '/');
+    }
+    return fetch(url, init);
+  };
+}
+
 @Injectable()
 export class SupabaseAdminService {
   private readonly logger = new Logger(SupabaseAdminService.name);
@@ -21,6 +36,9 @@ export class SupabaseAdminService {
           persistSession: false,
           autoRefreshToken: false,
           detectSessionInUrl: false,
+        },
+        global: {
+          fetch: createSupabaseFetch(),
         },
       });
       this.logger.log(`Initialized Supabase Admin Client for ${this.supabaseUrl}`);
@@ -85,10 +103,14 @@ export class SupabaseAnonServiceFactory {
   createClient(customStorage?: any): SupabaseClient {
     return createClient(this.supabaseUrl, this.anonKey, {
       auth: {
-        persistSession: false,
+        flowType: 'pkce',
+        persistSession: Boolean(customStorage),
         autoRefreshToken: false,
         detectSessionInUrl: false,
         storage: customStorage,
+      },
+      global: {
+        fetch: createSupabaseFetch(),
       },
     });
   }

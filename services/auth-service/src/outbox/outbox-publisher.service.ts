@@ -1,4 +1,4 @@
-import { Injectable, Logger, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import { Injectable, Inject, Logger, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { PrismaService } from '../prisma.service.js';
 import { RabbitMqPublisherService } from './rabbitmq-publisher.service.js';
 import type { EventEnvelope } from '@app/contracts';
@@ -9,9 +9,13 @@ export class OutboxPublisherService implements OnModuleInit, OnModuleDestroy {
   private pollingTimer: NodeJS.Timeout | null = null;
   private isProcessing = false;
   private pollIntervalMs = 500;
+  private lastLoggedError: string | null = null;
+  private lastLoggedErrorTime = 0;
 
   constructor(
+    @Inject(PrismaService)
     private readonly prisma: PrismaService,
+    @Inject(RabbitMqPublisherService)
     private readonly rabbitmqPublisher: RabbitMqPublisherService,
   ) {}
 
@@ -109,7 +113,12 @@ export class OutboxPublisherService implements OnModuleInit, OnModuleDestroy {
       }
     } catch (err: any) {
       // Database offline/unreachable in unit tests or transient connection error
-      this.logger.debug(`Outbox polling iteration skipped: ${err.message}`);
+      const now = Date.now();
+      if (err.message !== this.lastLoggedError || now - this.lastLoggedErrorTime > 10000) {
+        this.lastLoggedError = err.message;
+        this.lastLoggedErrorTime = now;
+        this.logger.debug(`Outbox polling iteration skipped: ${err.message}`);
+      }
     } finally {
       this.isProcessing = false;
     }

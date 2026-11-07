@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Inject, Logger, NotFoundException } from '@nestjs/common';
 import { ProfileRepository } from './profile.repository.js';
 import type { UserRegisteredV1 } from '@app/contracts';
 
@@ -6,7 +6,10 @@ import type { UserRegisteredV1 } from '@app/contracts';
 export class ProfileService {
   private readonly logger = new Logger(ProfileService.name);
 
-  constructor(private readonly repository: ProfileRepository) {}
+  constructor(
+    @Inject(ProfileRepository)
+    private readonly repository: ProfileRepository,
+  ) {}
 
   /**
    * Returns user profile.

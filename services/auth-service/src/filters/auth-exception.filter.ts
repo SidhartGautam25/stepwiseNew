@@ -76,6 +76,10 @@ export class AuthExceptionFilter implements ExceptionFilter {
       status = HttpStatus.FORBIDDEN;
       code = 'ACCOUNT_SUSPENDED';
       message = 'This account has been suspended';
+    } else if (status === HttpStatus.NOT_FOUND || rawStatus === 404) {
+      status = HttpStatus.NOT_FOUND;
+      code = 'NOT_FOUND';
+      message = exception.message || 'Requested resource not found';
     } else if (rawStatus && rawStatus >= 400 && rawStatus < 500) {
       status = rawStatus;
       code = 'AUTH_FAILED';

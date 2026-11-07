@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { PrismaService } from '../prisma.service.js';
 
 export interface CreateProfileData {
@@ -13,7 +13,10 @@ export interface CreateProfileData {
 
 @Injectable()
 export class ProfileRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    @Inject(PrismaService)
+    private readonly prisma: PrismaService,
+  ) {}
 
   async findById(userId: string) {
     return this.prisma.userProfile.findUnique({

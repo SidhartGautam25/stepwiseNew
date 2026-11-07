@@ -5,6 +5,19 @@ import { PrismaClient } from './generated/client/index.js';
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(PrismaService.name);
 
+  constructor() {
+    const url =
+      process.env.DATABASE_URL_AUTH ||
+      process.env.DATABASE_URL ||
+      'postgresql://handrail:handrail_password@localhost:5432/handrail_db?schema=auth_svc';
+
+    super({
+      datasources: {
+        db: { url },
+      },
+    });
+  }
+
   async onModuleInit() {
     try {
       await this.$connect();

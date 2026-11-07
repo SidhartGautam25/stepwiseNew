@@ -18,6 +18,7 @@ import { AuthEventConsumerService } from './events/auth-event-consumer.service.j
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: ['.env', '../../.env', '../.env'],
     }),
     ThrottlerModule.forRoot([
       {

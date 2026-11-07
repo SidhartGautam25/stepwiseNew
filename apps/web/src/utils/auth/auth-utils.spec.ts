@@ -204,7 +204,7 @@ describe('A6.1 Next.js Edge Middleware', () => {
           return undefined;
         },
       },
-    };
+    } as any;
   }
 
   it('redirects to /auth/refresh with next param when accessing protected route without cookie', () => {
