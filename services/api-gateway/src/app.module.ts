@@ -1,9 +1,9 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
-import { AuthModule } from '@app/auth';
+import { AuthLibModule } from '@app/auth';
 import { CorrelationIdMiddleware, HealthController } from '@app/common';
-import { MeController } from './me.controller.js';
+import { CsrfProtectionMiddleware } from './csrf.middleware.js';
 
 @Module({
   imports: [
@@ -13,9 +13,16 @@ import { MeController } from './me.controller.js';
         limit: 120,
       },
     ]),
-    AuthModule,
+    AuthLibModule.forRoot({
+      supabaseUrl: process.env.SUPABASE_URL,
+      supabaseJwtSecret: process.env.SUPABASE_JWT_SECRET,
+      jwksUri: process.env.SUPABASE_JWKS_URI,
+      issuer: process.env.SUPABASE_ISSUER,
+      audience: process.env.SUPABASE_AUDIENCE || 'authenticated',
+      clockTolerance: 30,
+    }),
   ],
-  controllers: [HealthController, MeController],
+  controllers: [HealthController],
   providers: [
     {
       provide: APP_GUARD,
@@ -26,6 +33,6 @@ import { MeController } from './me.controller.js';
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer.apply(CorrelationIdMiddleware).forRoutes('*');
+    consumer.apply(CsrfProtectionMiddleware).forRoutes('*');
   }
 }
-

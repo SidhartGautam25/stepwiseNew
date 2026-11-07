@@ -1,0 +1,67 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL_PROFILE")
+  schemas  = ["profile_svc"]
+}
+
+model UserProfile {
+  userId          String         @id @map("user_id")
+  email           String
+  displayName     String?        @map("display_name")
+  avatarUrl       String?        @map("avatar_url")
+  defaultLevel    String         @default("beginner") @map("default_level")
+  defaultLanguage String         @default("typescript") @map("default_language")
+  theme           String         @default("dark")
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+  enrollments     Enrollment[]
+  activities      UserActivity[]
+
+  @@map("user_profiles")
+  @@schema("profile_svc")
+}
+
+model UserActivity {
+  id           String      @id @default(uuid())
+  userId       String      @map("user_id")
+  type         String
+  metadataJson Json?       @map("metadata_json")
+  createdAt    DateTime    @default(now()) @map("created_at")
+  profile      UserProfile @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  @@map("user_activities")
+  @@schema("profile_svc")
+}
+
+model Enrollment {
+  id           String         @id @default(uuid())
+  userId       String         @map("user_id")
+  workshopSlug String         @map("workshop_slug")
+  language     String
+  enrolledAt   DateTime       @default(now()) @map("enrolled_at")
+  steps        StepProgress[]
+  profile      UserProfile?   @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  @@unique([userId, workshopSlug, language])
+  @@map("enrollments")
+  @@schema("profile_svc")
+}
+
+model StepProgress {
+  id           String     @id @default(uuid())
+  enrollmentId String     @map("enrollment_id")
+  stepSlug     String     @map("step_slug")
+  globalOrder  Int        @map("global_order")
+  status       String     @default("LOCKED")
+  completedAt  DateTime?  @map("completed_at")
+  enrollment   Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+
+  @@unique([enrollmentId, stepSlug])
+  @@map("step_progress")
+  @@schema("profile_svc")
+}

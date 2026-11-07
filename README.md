@@ -262,7 +262,7 @@ cp .env.example .env
 ```bash
 docker compose -f infra/docker-compose.yml up -d
 ```
-*This starts PostgreSQL 16 (creating schemas `catalog`, `starter`, `verification`, `progress`), RabbitMQ (with management UI), Redis 7, and MinIO/Silo.*
+*This starts PostgreSQL 16, Supabase GoTrue Auth (`supabase/gotrue` lightweight standalone container on port 54321), RabbitMQ (with management UI), Redis 7, and MinIO/Silo.*
 
 #### 3. Install monorepo dependencies
 ```bash
@@ -273,7 +273,9 @@ pnpm install
 ```bash
 pnpm db:push
 ```
-*This connects to your running PostgreSQL instance and creates all tables across the 4 isolated microservice schemas (`catalog`, `starter`, `verification`, `progress`).*
+*This connects to your running PostgreSQL instance and creates all tables across all 6 isolated microservice schemas (`catalog`, `starter`, `verification`, `progress`, `auth_svc`, `profile_svc`).*
+
+> **Local Authentication Note**: When developing locally with Docker Compose, `auth-service` automatically handles GitHub OAuth and email/password authentication locally using the configured `SUPABASE_JWT_SECRET`. To connect to a live Supabase project, simply set `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY` in `.env`.
 
 #### 5. Start all backend microservices and the web app in parallel
 ```bash
@@ -334,8 +336,8 @@ docker compose -f infra/docker-compose.yml logs -f
 
 ### 💡 Common Troubleshooting & Tips
 
-- **`The table 'catalog.workshops' does not exist in the current database`**:
-  - Run `pnpm db:push`. This pushes Prisma schemas to your PostgreSQL instance and creates all required tables across all 4 microservice schemas.
+- **`The table 'auth_svc.outbox_event' (or 'catalog.workshops') does not exist in the current database`**:
+  - Run `pnpm db:push`. This pushes Prisma schemas to your PostgreSQL instance and creates all required tables across all microservice schemas (`auth_svc`, `profile_svc`, `catalog`, `starter`, `verification`, `progress`).
 - **`Failed to load workshops: Failed to fetch`**:
   - Ensure `pnpm dev` is running in your terminal. This boots up the API Gateway on port `4000` and the Catalog Service on port `4001`.
 - **`'-H' is not recognized as an internal or external command` (Windows CMD)**:

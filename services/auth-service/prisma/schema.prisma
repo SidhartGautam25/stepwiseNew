@@ -1,0 +1,59 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL_AUTH")
+  schemas  = ["auth_svc"]
+}
+
+model UserAccount {
+  id          String    @id
+  email       String    @unique
+  status      String    @default("ACTIVE")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  lastLoginAt DateTime? @map("last_login_at")
+
+  @@map("user_account")
+  @@schema("auth_svc")
+}
+
+model AuthAuditEvent {
+  id           String   @id @default(uuid())
+  userId       String?  @map("user_id")
+  type         String
+  ip           String?
+  userAgent    String?  @map("user_agent")
+  requestId    String?  @map("request_id")
+  metadataJson Json?    @map("metadata_json")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@map("auth_audit_event")
+  @@schema("auth_svc")
+}
+
+model OutboxEvent {
+  id          String    @id @default(uuid())
+  type        String
+  payloadJson Json      @map("payload_json")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  publishedAt DateTime? @map("published_at")
+  attempts    Int       @default(0)
+
+  @@map("outbox_event")
+  @@schema("auth_svc")
+}
+
+model ServiceClient {
+  clientId         String   @id @map("client_id")
+  secretHash       String   @map("secret_hash")
+  allowedAudiences String[] @map("allowed_audiences")
+  scopes           String[]
+  status           String   @default("ACTIVE")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  @@map("service_client")
+  @@schema("auth_svc")
+}

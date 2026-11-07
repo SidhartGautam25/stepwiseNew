@@ -10,6 +10,7 @@
     "lint:content": "tsx tools/content-linter/index.ts",
     "db:push": "tsx tools/db-push.ts",
     "content:sync": "tsx tools/sync-content.ts",
+    "check:no-supabase": "tsx tools/check-no-supabase.ts",
     "test": "turbo run test",
     "clean": "turbo run clean"
   },

@@ -13,6 +13,8 @@ export interface NavbarProps {
 export function Navbar({ className = '' }: NavbarProps) {
   const {
     links,
+    user,
+    isLoading,
     isAuthenticated,
     handleLoginClick,
     handleGetStartedClick,
@@ -33,6 +35,8 @@ export function Navbar({ className = '' }: NavbarProps) {
 
         {/* Right: Auth Actions */}
         <NavActions
+          user={user}
+          isLoading={isLoading}
           isAuthenticated={isAuthenticated}
           onLogin={handleLoginClick}
           onGetStarted={handleGetStartedClick}
@@ -41,4 +45,3 @@ export function Navbar({ className = '' }: NavbarProps) {
     </header>
   );
 }
-
