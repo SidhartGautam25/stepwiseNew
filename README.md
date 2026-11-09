@@ -220,16 +220,19 @@ You can run Handrail locally using any of the three workflows below.
 To start developing immediately on your local machine:
 
 ```bash
-# 1. Start backing services (PostgreSQL, RabbitMQ, Redis, MinIO)
-docker compose -f infra/docker-compose.yml up -d
+# 1. Start backing services (PostgreSQL, RabbitMQ, Redis, MinIO, GoTrue Auth)
+docker compose --env-file .env -f infra/docker-compose.yml up -d
 
-# 2. Push Prisma database schemas to PostgreSQL
+# 2. Generate Prisma Client SDKs across all 6 microservices
+pnpm db:generate
+
+# 3. Push Prisma database schemas & extensions to PostgreSQL
 pnpm db:push
 
-# 3. Populate workshop content from /content into PostgreSQL
+# 4. Populate workshop content from /content into PostgreSQL
 pnpm content:sync
 
-# 4. Start all microservices (:4000-:4005) and web client (:3000)
+# 5. Start all microservices (:4000-:4005) and web client (:3000)
 pnpm dev
 ```
 > **Note on Content Storage**: Workshop content strictly originates from the PostgreSQL database (`catalog` schema). There is no filesystem fallback in the runtime services. Running `pnpm content:sync` populates all 4 workshops (`build-your-own-redis`, `build-your-own-react`, `build-your-own-git`, `build-your-own-npm`) directly into PostgreSQL so they are immediately queryable.
@@ -237,6 +240,62 @@ pnpm dev
 Then open [http://localhost:3000/workshops](http://localhost:3000/workshops) in your browser.
 
 ---
+
+### 📋 Developer Workflow Cheat Sheet: What to Run & When
+
+| Task / Scenario | Commands to Run | Why / What Happens |
+|---|---|---|
+| **1. First-Time Setup** *(Fresh Clone)* | `pnpm install`<br>`docker compose --env-file .env -f infra/docker-compose.yml up -d`<br>`pnpm db:generate`<br>`pnpm db:push`<br>`pnpm content:sync` | Installs dependencies, boots backing infrastructure, generates Prisma clients across all 6 microservices, creates tables/schemas in Postgres, and seeds content into the database. |
+| **2. Day-to-Day Development** | `docker compose -f infra/docker-compose.yml up -d`<br>`pnpm dev` | Starts containers (if stopped) and launches all microservices and Next.js web with live hot-reloading. |
+| **3. Changing Prisma Database Schemas** | Edit `services/<service>/prisma/schema.prisma`<br>`pnpm db:push` | `pnpm db:push` synchronizes your schema changes to PostgreSQL **and** automatically regenerates all TypeScript Prisma client types. |
+| **4. Changing Content in `/content`** | Edit markdown/YAML files in `/content`<br>`pnpm content:sync` | Re-validates content against Zod schemas and synchronizes updated chapters, steps, theory, and tests into PostgreSQL. |
+| **5. Changing Backend / Frontend Code** | Just save the file | `pnpm dev` runs `tsx watch` for NestJS services and Next.js Fast Refresh for the web app. No restarts required. |
+| **6. Pulling New Commits (`git pull`)** | `pnpm install`<br>`pnpm db:push` | Updates dependencies, pushes any database changes from teammates to PostgreSQL, and refreshes Prisma types. |
+
+---
+
+### 💡 Understanding `db:push` vs `db:generate`
+
+Many developers wonder: *Why do we have two separate commands, and what does each actually do?*
+
+| Command | Target | Does it talk to PostgreSQL? | What it does |
+|---|---|---|---|
+| **`pnpm db:push`** | **PostgreSQL Database** | **YES** | Connects to PostgreSQL, compares your `schema.prisma` files with the actual tables/columns in the database, and executes SQL statements (`CREATE TABLE`, `ALTER TABLE`, etc.) to update the database. |
+| **`pnpm db:generate`** | **TypeScript Code on Disk** | **NO** *(Can run offline)* | Reads `schema.prisma` and writes TypeScript type definitions into `services/*/src/generated/client`. It gives your TypeScript code auto-complete and type-safety. |
+
+#### Why did the first-time setup fail before, but works seamlessly now?
+- `prisma db push` on its own **only** updates PostgreSQL tables.
+- However, our project's `tools/init-auth-schema.ts` (which creates the Supabase GoTrue `postgres` superuser and `auth` schema) is a **TypeScript script** that imports `PrismaClient` from `services/auth-service/src/generated/client`.
+- On a fresh clone, because `generated/` is ignored by Git, that TypeScript import does not exist yet until `pnpm db:generate` is run.
+- **Automated Solution**: `pnpm db:push` has been enhanced to be completely self-healing. If client types are missing, it generates them first, pushes the tables to PostgreSQL, and automatically regenerates all client types at the end. You can simply run `pnpm db:push` whenever schemas change!
+
+---
+
+### 💻 Common Development Scenarios
+
+#### Scenario 1: Day-to-Day Development
+When starting work every morning:
+```bash
+# 1. Ensure Docker containers are running
+docker compose -f infra/docker-compose.yml up -d
+
+# 2. Start all microservices (:4000-:4005) and web client (:3000)
+pnpm dev
+```
+Both backend microservices (via `tsx watch`) and the Next.js web application (via React Fast Refresh) will automatically hot-reload when you save files.
+
+#### Scenario 2: Modifying a Database Schema
+When you add a new model or column to a service:
+```bash
+# 1. Edit the schema file, e.g.:
+#    services/catalog-service/prisma/schema.prisma
+
+# 2. Push changes to PostgreSQL and regenerate TypeScript types
+pnpm db:push
+
+# 3. Resume development (types are immediately available in VS Code)
+pnpm dev
+```
 
 ### Prerequisites
 - **Node.js**: v20 or v22+
@@ -269,28 +328,34 @@ docker compose -f infra/docker-compose.yml up -d
 pnpm install
 ```
 
-#### 4. Push database schemas and create tables
+#### 4. Generate Prisma Client SDKs across microservices
+```bash
+pnpm db:generate
+```
+*Because generated types are gitignored, this generates the isolated Prisma clients in `services/*/src/generated/client` for all microservices.*
+
+#### 5. Push database schemas and create tables
 ```bash
 pnpm db:push
 ```
-*This connects to your running PostgreSQL instance and creates all tables across all 6 isolated microservice schemas (`catalog`, `starter`, `verification`, `progress`, `auth_svc`, `profile_svc`).*
+*This connects to your running PostgreSQL instance, initializes required extensions (`uuid-ossp`, `pgcrypto`) and auth schemas, and creates all tables across all 6 microservice schemas (`catalog`, `starter`, `verification`, `progress`, `auth_svc`, `profile_svc`).*
 
 > **Local Authentication Note**: When developing locally with Docker Compose, `auth-service` automatically handles GitHub OAuth and email/password authentication locally using the configured `SUPABASE_JWT_SECRET`. To connect to a live Supabase project, simply set `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY` in `.env`.
 
-#### 5. Start all backend microservices and the web app in parallel
+#### 6. Start all backend microservices and the web app in parallel
 ```bash
 pnpm dev
 ```
 *This starts the API Gateway on port `4000`, Catalog Service on `4001`, Starters on `4002`, Verification on `4003`, Progress on `4004`, Realtime on `4005`, and Next.js Web on `3000` with live hot-reloading.*
 
-#### 6. Sync workshop content into the catalog database
+#### 7. Sync workshop content into the catalog database
 In a second terminal window (while `pnpm dev` is running):
 ```bash
 pnpm content:sync
 ```
 *(This cross-platform Node script reads `/content`, verifies schemas, and syncs all chapters, steps, tests, and MDX contents across all 3 levels into PostgreSQL without needing `curl` or manual headers).*
 
-#### 7. Open the application
+#### 8. Open the application
 Navigate to [http://localhost:3000/workshops](http://localhost:3000/workshops) to explore the workshops catalog and start building.
 
 ---

@@ -8,6 +8,7 @@
     "dev": "turbo run dev --parallel",
     "lint": "turbo run lint",
     "lint:content": "tsx tools/content-linter/index.ts",
+    "db:generate": "turbo run prisma:generate",
     "db:push": "tsx tools/db-push.ts",
     "content:sync": "tsx tools/sync-content.ts",
     "check:no-supabase": "tsx tools/check-no-supabase.ts",

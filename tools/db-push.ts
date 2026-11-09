@@ -30,6 +30,22 @@ const services = [
 
 console.log('[Handrail DB Sync] Pushing Prisma schemas to PostgreSQL...\n');
 
+// 1. Ensure all Prisma clients are generated across services
+const authClientDir = path.resolve(process.cwd(), 'services', 'auth-service', 'src', 'generated', 'client');
+if (!fs.existsSync(authClientDir)) {
+  console.log('[Handrail DB Sync] Generating Prisma client types for all services...\n');
+  try {
+    execSync('pnpm db:generate', {
+      stdio: 'inherit',
+      env: process.env,
+      cwd: process.cwd(),
+      shell: true as any,
+    });
+  } catch (err: any) {
+    console.warn(`[Handrail DB Sync] Prisma generate warning: ${err.message}`);
+  }
+}
+
 console.log('[Handrail DB Sync] Ensuring extensions and auth schemas exist...\n');
 try {
   execSync('tsx tools/init-auth-schema.ts', {
@@ -69,5 +85,16 @@ if (!allSuccess) {
   console.error('[Handrail DB Sync] Some schemas failed to push. Ensure PostgreSQL is running on port 5432.');
   process.exit(1);
 } else {
-  console.log('🎉 All PostgreSQL database schemas and tables are up to date!');
+  console.log('[Handrail DB Sync] Regenerating TypeScript Prisma clients for updated schemas...\n');
+  try {
+    execSync('pnpm db:generate', {
+      stdio: 'inherit',
+      env: process.env,
+      cwd: process.cwd(),
+      shell: true as any,
+    });
+  } catch (err: any) {
+    console.warn(`[Handrail DB Sync] Warning during client regeneration: ${err.message}`);
+  }
+  console.log('\n🎉 All PostgreSQL database schemas, tables, and TypeScript clients are up to date!');
 }
