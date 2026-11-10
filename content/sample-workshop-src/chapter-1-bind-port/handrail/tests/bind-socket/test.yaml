@@ -1,0 +1,4 @@
+id: bind-socket
+description: Verifies that the server process binds successfully to port 4221 without crashing.
+hidden: false
+timeout_seconds: 15

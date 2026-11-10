@@ -1,0 +1,16 @@
+name: Handrail Verify
+on: [push]
+jobs:
+  verify:
+    name: Verify Handrail Step
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Handrail Reusable Verification Runner
+        uses: handrail-platform/verify-action@v1
+        with:
+          workshop: build-your-own-http-server
+          language: python

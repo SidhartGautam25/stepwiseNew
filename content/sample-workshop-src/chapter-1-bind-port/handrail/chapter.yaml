@@ -1,0 +1,13 @@
+id: bind-port
+title: Bind to a Port
+summary: Initialize a raw network socket and configure it to listen for incoming connections.
+est_minutes: 45
+steps:
+  - id: bind-socket
+    title: Create and Bind Socket
+    tests:
+      - bind-socket
+  - id: listen-port
+    title: Listen and Accept Connections
+    tests:
+      - listen-port

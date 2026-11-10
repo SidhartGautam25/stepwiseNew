@@ -5,15 +5,18 @@ import { StructuredLogger, AllExceptionsFilter } from '@app/common';
 
 async function bootstrap() {
   const logger = new StructuredLogger('catalog-service');
-  const app = await NestFactory.create(AppModule, { logger });
+  const app = await NestFactory.create(AppModule, {
+    logger,
+    rawBody: true,
+  });
 
   app.enableCors();
   app.useGlobalFilters(new AllExceptionsFilter());
 
   const config = new DocumentBuilder()
     .setTitle('Handrail Catalog Service')
-    .setDescription('Catalog, Workshops, Chapters, Steps, and Content')
-    .setVersion('0.1.0')
+    .setDescription('Catalog, Workshops, Versions, Ingest and Artifacts')
+    .setVersion('0.2.0')
     .addBearerAuth()
     .build();
 
@@ -26,4 +29,3 @@ async function bootstrap() {
 }
 
 bootstrap();
-

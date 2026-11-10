@@ -1,0 +1,4 @@
+id: connection-keep-alive
+description: Verifies that multiple HTTP requests can be executed sequentially over a single TCP connection.
+hidden: false
+timeout_seconds: 20

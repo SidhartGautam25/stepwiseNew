@@ -1,0 +1,13 @@
+id: parse-request
+title: Parse HTTP Request
+summary: Parse raw stream bytes into HTTP/1.1 request lines and key-value headers.
+est_minutes: 60
+steps:
+  - id: parse-request-line
+    title: Parse HTTP Request Line
+    tests:
+      - parse-request-line
+  - id: parse-headers
+    title: Parse HTTP Headers
+    tests:
+      - parse-headers

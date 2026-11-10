@@ -100,7 +100,29 @@ export function getGatewayRoutes(): RouteConfig[] {
         pathname.startsWith('/v1/preferences'),
     },
 
-    // --- 4. Catalog Service (includes starters download & workshops exploration) ---
+    // --- 4. Catalog Service (workshops, gated chapters/steps, starters download & admin) ---
+    {
+      id: 'catalog-admin',
+      prefix: '/v1/admin',
+      target: catalogServiceUrl,
+      authMode: 'jwt',
+      matcher: (pathname) => pathname.startsWith('/v1/admin'),
+    },
+    {
+      id: 'catalog-content-webhook',
+      prefix: '/v1/github/content-webhook',
+      target: catalogServiceUrl,
+      authMode: 'passthrough',
+      methods: ['POST', 'OPTIONS'],
+    },
+    {
+      id: 'catalog-gated-content',
+      prefix: '/v1/workshops',
+      target: catalogServiceUrl,
+      authMode: 'jwt',
+      matcher: (pathname) =>
+        /^\/v1\/workshops\/[^/]+\/(chapters(\/.*)?|starter)$/.test(pathname),
+    },
     {
       id: 'starters-download-public',
       prefix: '/v1/starters',
@@ -123,7 +145,7 @@ export function getGatewayRoutes(): RouteConfig[] {
       authMode: 'public',
       methods: ['GET', 'HEAD', 'OPTIONS'],
       matcher: (pathname, method) =>
-        (pathname === '/v1/workshops' || pathname.startsWith('/v1/workshops/')) &&
+        (pathname === '/v1/workshops' || /^\/v1\/workshops\/[^/]+$/.test(pathname)) &&
         !pathname.endsWith('/enroll') &&
         !pathname.endsWith('/progress') &&
         ['GET', 'HEAD', 'OPTIONS'].includes(method),

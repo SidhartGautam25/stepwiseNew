@@ -1,0 +1,4 @@
+build: ["echo", "Python ready"]
+run:
+  default: ["python3", "server.py"]
+  windows: ["python", "server.py"]

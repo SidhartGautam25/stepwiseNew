@@ -1,6 +1,7 @@
 generator client {
-  provider = "prisma-client-js"
-  output   = "../src/generated/client"
+  provider        = "prisma-client-js"
+  output          = "../src/generated/client"
+  previewFeatures = ["multiSchema"]
 }
 
 datasource db {
@@ -9,77 +10,11 @@ datasource db {
   schemas  = ["catalog"]
 }
 
-model Workshop {
-  id            String             @id @default(uuid())
-  slug          String             @unique
-  title         String
-  summary       String
-  difficulty    String
-  estimatedTime String             @map("estimated_time")
-  prerequisites String[]
-  limitations   String[]
-  whatWeBuild   String             @map("what_we_build")
-  whatYouLearn  String[]           @map("what_you_learn")
-  createdAt     DateTime           @default(now()) @map("created_at")
-  updatedAt     DateTime           @updatedAt @map("updated_at")
-  languages     WorkshopLanguage[]
-  chapters      Chapter[]
+enum VersionKind {
+  draft
+  published
+  deprecated
 
-  @@map("workshops")
-  @@schema("catalog")
-}
-
-model WorkshopLanguage {
-  id         String   @id @default(uuid())
-  workshopId String   @map("workshop_id")
-  language   String
-  workshop   Workshop @relation(fields: [workshopId], references: [id], onDelete: Cascade)
-
-  @@unique([workshopId, language])
-  @@map("workshop_languages")
-  @@schema("catalog")
-}
-
-model Chapter {
-  id         String   @id @default(uuid())
-  workshopId String   @map("workshop_id")
-  slug       String
-  title      String
-  summary    String
-  orderIndex Int      @map("order_index")
-  workshop   Workshop @relation(fields: [workshopId], references: [id], onDelete: Cascade)
-  steps      Step[]
-
-  @@unique([workshopId, slug])
-  @@map("chapters")
-  @@schema("catalog")
-}
-
-model Step {
-  id          String        @id @default(uuid())
-  chapterId   String        @map("chapter_id")
-  slug        String
-  title       String
-  globalOrder Int           @map("global_order")
-  chapter     Chapter       @relation(fields: [chapterId], references: [id], onDelete: Cascade)
-  tests       StepTest[]
-  contents    StepContent[]
-
-  @@unique([chapterId, slug])
-  @@map("steps")
-  @@schema("catalog")
-}
-
-model StepTest {
-  id          String   @id @default(uuid())
-  stepId      String   @map("step_id")
-  testId      String   @map("test_id")
-  description String
-  isHidden    Boolean  @default(false) @map("is_hidden")
-  step        Step     @relation(fields: [stepId], references: [id], onDelete: Cascade)
-
-  @@unique([stepId, testId])
-  @@map("step_tests")
   @@schema("catalog")
 }
 
@@ -99,16 +34,193 @@ enum ContentLevel {
   @@schema("catalog")
 }
 
+enum ArtifactKind {
+  starter_zip
+  test_bundle
+  asset
+
+  @@schema("catalog")
+}
+
+enum IngestTrigger {
+  webhook
+  manual
+  publish
+
+  @@schema("catalog")
+}
+
+enum IngestStatus {
+  pending
+  running
+  completed
+  failed
+
+  @@schema("catalog")
+}
+
+model Workshop {
+  id                String            @id @default(uuid())
+  slug              String            @unique
+  repoFullName      String            @map("repo_full_name")
+  installationId    String?           @map("installation_id")
+  access            String            @default("public")
+  status            String            @default("active")
+  latestPublishedId String?           @map("latest_published_id")
+  createdAt         DateTime          @default(now()) @map("created_at")
+  updatedAt         DateTime          @updatedAt @map("updated_at")
+
+  versions          WorkshopVersion[]
+  ingestRuns        IngestRun[]
+
+  @@map("workshops")
+  @@schema("catalog")
+}
+
+model WorkshopVersion {
+  id             String            @id @default(uuid())
+  workshopId     String            @map("workshop_id")
+  version        String
+  kind           VersionKind       @default(draft)
+  mainSha        String            @map("main_sha")
+  releaseNotesMd String?           @map("release_notes_md")
+  lintReportJson Json?             @map("lint_report_json")
+  createdAt      DateTime          @default(now()) @map("created_at")
+  publishedAt    DateTime?         @map("published_at")
+
+  workshop       Workshop          @relation(fields: [workshopId], references: [id], onDelete: Cascade)
+  chapters       Chapter[]
+  overview       WorkshopOverview?
+  artifacts      Artifact[]
+
+  @@unique([workshopId, version])
+  @@index([workshopId, kind])
+  @@map("workshop_versions")
+  @@schema("catalog")
+}
+
+model Chapter {
+  id         String            @id @default(uuid())
+  versionId  String            @map("version_id")
+  orderNo    Int               @map("order_no")
+  chapterKey String            @map("chapter_key")
+  title      String
+  summary    String
+  estMinutes Int?              @map("est_minutes")
+  branch     String
+  commitSha  String            @map("commit_sha")
+  manifestJson Json?           @map("manifest_json")
+
+  version    WorkshopVersion   @relation(fields: [versionId], references: [id], onDelete: Cascade)
+  steps      Step[]
+  intros     ChapterIntro[]
+  artifacts  Artifact[]
+
+  @@unique([versionId, chapterKey])
+  @@unique([versionId, orderNo])
+  @@map("chapters")
+  @@schema("catalog")
+}
+
+model Step {
+  id             String            @id @default(uuid())
+  chapterId      String            @map("chapter_id")
+  orderInChapter Int               @map("order_in_chapter")
+  stepKey        String            @map("step_key")
+  title          String
+
+  chapter        Chapter           @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  contents       StepContent[]
+
+  @@unique([chapterId, stepKey])
+  @@unique([chapterId, orderInChapter])
+  @@map("steps")
+  @@schema("catalog")
+}
+
 model StepContent {
-  id      String       @id @default(uuid())
-  stepId  String       @map("step_id")
-  kind    ContentKind
-  level   ContentLevel
-  mdx     String
-  step    Step         @relation(fields: [stepId], references: [id], onDelete: Cascade)
+  id        String       @id @default(uuid())
+  stepId    String       @map("step_id")
+  kind      ContentKind
+  level     ContentLevel
+  md        String
+
+  step      Step         @relation(fields: [stepId], references: [id], onDelete: Cascade)
 
   @@unique([stepId, kind, level])
   @@map("step_contents")
   @@schema("catalog")
 }
 
+model ChapterIntro {
+  id        String       @id @default(uuid())
+  chapterId String       @map("chapter_id")
+  level     ContentLevel
+  md        String
+
+  chapter   Chapter      @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+
+  @@unique([chapterId, level])
+  @@map("chapter_intros")
+  @@schema("catalog")
+}
+
+model WorkshopOverview {
+  id           String          @id @default(uuid())
+  versionId    String          @unique @map("version_id")
+  sectionsJson Json            @map("sections_json")
+
+  version      WorkshopVersion @relation(fields: [versionId], references: [id], onDelete: Cascade)
+
+  @@map("workshop_overviews")
+  @@schema("catalog")
+}
+
+model Artifact {
+  id         String          @id @default(uuid())
+  versionId  String          @map("version_id")
+  chapterId  String?         @map("chapter_id")
+  language   String?
+  kind       ArtifactKind
+  storageKey String          @map("storage_key")
+  sha256     String
+  size       Int
+  createdAt  DateTime        @default(now()) @map("created_at")
+
+  version    WorkshopVersion @relation(fields: [versionId], references: [id], onDelete: Cascade)
+  chapter    Chapter?        @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+
+  @@index([versionId, kind])
+  @@map("artifacts")
+  @@schema("catalog")
+}
+
+model IngestRun {
+  id         String        @id @default(uuid())
+  workshopId String        @map("workshop_id")
+  trigger    IngestTrigger
+  mainSha    String?       @map("main_sha")
+  status     IngestStatus  @default(pending)
+  error      String?
+  logExcerpt String?       @map("log_excerpt")
+  createdAt  DateTime      @default(now()) @map("created_at")
+
+  workshop   Workshop      @relation(fields: [workshopId], references: [id], onDelete: Cascade)
+
+  @@index([workshopId, createdAt])
+  @@map("ingest_runs")
+  @@schema("catalog")
+}
+
+model AuditEvent {
+  id           String   @id @default(uuid())
+  actor        String
+  action       String
+  subject      String
+  metadataJson Json?    @map("metadata_json")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@index([subject, createdAt])
+  @@map("audit_events")
+  @@schema("catalog")
+}

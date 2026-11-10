@@ -1,0 +1,16 @@
+slug: build-your-own-http-server
+title: Build your own HTTP Server
+summary: Learn systems networking and the HTTP/1.1 protocol by implementing an RFC-compliant HTTP server from scratch.
+difficulty: intermediate
+estimated_hours: 8
+access: free
+languages:
+  - go
+  - python
+prerequisites:
+  - Basic understanding of TCP/IP networking
+  - Familiarity with file I/O and process execution
+chapters:
+  - bind-port
+  - parse-request
+  - concurrent-connections

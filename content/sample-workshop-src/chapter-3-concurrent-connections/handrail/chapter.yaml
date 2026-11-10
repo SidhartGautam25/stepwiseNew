@@ -1,0 +1,13 @@
+id: concurrent-connections
+title: Handle Concurrent Connections
+summary: Scale your server to handle concurrent connections and implement HTTP/1.1 persistent connection keep-alive.
+est_minutes: 60
+steps:
+  - id: concurrent-clients
+    title: Serve Multiple Clients Simultaneously
+    tests:
+      - concurrent-clients
+  - id: connection-keep-alive
+    title: Support Persistent Keep-Alive Connections
+    tests:
+      - connection-keep-alive

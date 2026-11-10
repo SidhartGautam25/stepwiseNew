@@ -1,51 +1,54 @@
-import { Controller, Get, Param, Query, Inject } from '@nestjs/common';
-import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { Public } from '@app/auth';
+import {
+  Controller,
+  Get,
+  Param,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
+import { JwtAuthGuard, Public, CurrentUser } from '@app/auth';
+import type { AuthenticatedUser, ContentLevel } from '@app/contracts';
 import { CatalogService } from './catalog.service.js';
-import type { ContentLevel } from '@app/contracts';
 
-@ApiTags('Workshops')
 @Controller('v1/workshops')
+@UseGuards(JwtAuthGuard)
 export class CatalogController {
-  constructor(
-    @Inject(CatalogService)
-    private readonly catalogService: CatalogService,
-  ) {}
+  constructor(private readonly catalogService: CatalogService) {}
 
   @Public()
   @Get()
-  @ApiOperation({ summary: 'List all available guided workshops' })
-  @ApiResponse({ status: 200, description: 'List of workshop summaries' })
-  listWorkshops() {
+  async listWorkshops() {
     return this.catalogService.listWorkshops();
   }
 
   @Public()
   @Get(':slug')
-  @ApiOperation({ summary: 'Get workshop overview including chapters and steps' })
-  @ApiResponse({ status: 200, description: 'Workshop overview' })
-  @ApiResponse({ status: 404, description: 'Workshop not found' })
-  getWorkshopOverview(@Param('slug') slug: string) {
-    return this.catalogService.getWorkshopOverview(slug);
+  async getWorkshop(
+    @Param('slug') slug: string,
+    @Query('version') version?: string,
+    @CurrentUser() user?: AuthenticatedUser,
+  ) {
+    return this.catalogService.getWorkshopBySlug(slug, version, user);
   }
 
-  @Public()
-  @Get(':slug/steps/:stepSlug')
-  @ApiOperation({ summary: 'Get step details with 3-level content and tests' })
-  @ApiQuery({
-    name: 'level',
-    required: false,
-    enum: ['beginner', 'intermediate', 'expert'],
-    description: 'Preferred depth level',
-  })
-  @ApiResponse({ status: 200, description: 'Step details' })
-  @ApiResponse({ status: 404, description: 'Step not found' })
-  getStepDetail(
+  @Get(':slug/chapters/:chapterId')
+  async getChapter(
     @Param('slug') slug: string,
-    @Param('stepSlug') stepSlug: string,
+    @Param('chapterId') chapterId: string,
     @Query('level') level?: ContentLevel,
+    @CurrentUser() user?: AuthenticatedUser,
   ) {
-    return this.catalogService.getStepDetail(slug, stepSlug, level);
+    return this.catalogService.getGatedChapter(slug, chapterId, level, user);
+  }
+
+  @Get(':slug/chapters/:chapterId/steps/:stepId')
+  async getStep(
+    @Param('slug') slug: string,
+    @Param('chapterId') chapterId: string,
+    @Param('stepId') stepId: string,
+    @Query('level') level?: ContentLevel,
+    @CurrentUser() user?: AuthenticatedUser,
+  ) {
+    return this.catalogService.getGatedStep(slug, chapterId, stepId, level, user);
   }
 }
 

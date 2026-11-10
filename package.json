@@ -8,6 +8,8 @@
     "dev": "turbo run dev --parallel",
     "lint": "turbo run lint",
     "lint:content": "tsx tools/content-linter/index.ts",
+    "author": "tsx tools/author/src/cli.ts",
+    "make:sample-repo": "tsx scripts/make-sample-repo.ts",
     "db:generate": "turbo run prisma:generate",
     "db:push": "tsx tools/db-push.ts",
     "content:sync": "tsx tools/sync-content.ts",

@@ -1,0 +1,4 @@
+id: concurrent-clients
+description: Verifies that multiple clients can connect and receive HTTP responses simultaneously.
+hidden: false
+timeout_seconds: 20

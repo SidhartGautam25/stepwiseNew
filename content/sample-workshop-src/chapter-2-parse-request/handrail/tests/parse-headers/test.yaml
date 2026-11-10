@@ -1,0 +1,4 @@
+id: parse-headers
+description: Verifies that client headers such as User-Agent and Host are parsed correctly.
+hidden: false
+timeout_seconds: 15
