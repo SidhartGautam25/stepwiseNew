@@ -42,3 +42,8 @@ coverage/
 test-results/
 playwright-report/
 
+
+
+packages/*/tsconfig.tsbuildinfo
+services/*/tsconfig.tsbuildinfo
+
