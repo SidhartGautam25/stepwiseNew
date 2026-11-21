@@ -26,6 +26,7 @@ const services = [
   'starter-service',
   'verification-service',
   'progress-service',
+  'payment-service',
 ];
 
 console.log('[Handrail DB Sync] Pushing Prisma schemas to PostgreSQL...\n');
