@@ -18,7 +18,8 @@ export class ProfileConfigService {
   }
 
   get paymentServiceUrl(): string {
-    return process.env.PAYMENT_SERVICE_URL || 'http://localhost:4007';
+    const raw = process.env.PAYMENT_SERVICE_URL || 'http://127.0.0.1:4007';
+    return raw.replace('//localhost:', '//127.0.0.1:');
   }
 
   get serviceSecret(): string {

@@ -86,6 +86,13 @@ export function getGatewayRoutes(): RouteConfig[] {
       matcher: (pathname) => pathname.startsWith('/v1/live'),
     },
     {
+      id: 'profile-progress-all',
+      prefix: '/v1/progress',
+      target: profileServiceUrl,
+      authMode: 'jwt',
+      matcher: (pathname) => pathname.startsWith('/v1/progress'),
+    },
+    {
       id: 'workshops-enroll-or-progress',
       prefix: '/v1/workshops',
       target: profileServiceUrl,

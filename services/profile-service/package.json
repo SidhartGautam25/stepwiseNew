@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build": "tsc -b && node -e \"const fs=require('fs'); if(fs.existsSync('src/generated')) fs.cpSync('src/generated', 'dist/generated', {recursive: true});\"",
+    "build": "tsc -b && node -e \"const fs=require('fs'); if(fs.existsSync('src/generated')) { try { fs.cpSync('src/generated', 'dist/generated', {recursive: true, force: true}); } catch {} }\"",
     "start": "node dist/main.js",
     "dev": "node ../../tools/dev-runner.js",
     "prisma:generate": "prisma generate",

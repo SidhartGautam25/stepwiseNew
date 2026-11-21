@@ -57,10 +57,38 @@ export function useRazorpayCheckout() {
         }
 
         // 1. Create order on payment-service via gateway
-        const orderData = await apiFetch<PaymentOrderResponseDto>('/v1/payments/orders', {
-          method: 'POST',
-          body: JSON.stringify({ workshopSlug, currency: 'INR' }),
-        });
+        let orderData: PaymentOrderResponseDto;
+        try {
+          orderData = await apiFetch<PaymentOrderResponseDto>('/v1/payments/orders', {
+            method: 'POST',
+            body: JSON.stringify({ workshopSlug, currency: 'INR' }),
+          });
+        } catch (orderErr: any) {
+          // If already purchased (409 Conflict), auto-resolve as success and unlock immediately
+          if (
+            orderErr?.statusCode === 409 ||
+            orderErr?.status === 409 ||
+            orderErr?.message?.toLowerCase().includes('already purchased')
+          ) {
+            console.log(`Workshop [${workshopSlug}] is already purchased. Auto-unlocking...`);
+            await queryClient.invalidateQueries({
+              queryKey: QUERY_KEYS.workshops.progress(workshopSlug),
+            });
+            await queryClient.invalidateQueries({ queryKey: ['profile', 'enrollments'] });
+            await queryClient.invalidateQueries({ queryKey: QUERY_KEYS.profile.activity });
+
+            callbacks?.onSuccess?.({
+              success: true,
+              orderId: '',
+              paymentId: '',
+              status: 'PAID',
+              workshopSlug,
+            });
+            setIsCheckingOut(false);
+            return;
+          }
+          throw orderErr;
+        }
 
         // 2. Load Razorpay script
         const scriptLoaded = await loadRazorpayScript();

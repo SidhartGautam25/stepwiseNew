@@ -144,7 +144,7 @@ export default function DashboardPage() {
           <div className="py-8 text-center font-mono text-sm text-zinc-500">
             Loading enrolled workshops...
           </div>
-        ) : enrollments && enrollments.length > 0 ? (
+        ) : enrollments && Array.isArray(enrollments) && enrollments.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {enrollments.map((enr) => {
               const completedCount =

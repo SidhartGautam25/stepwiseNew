@@ -14,6 +14,7 @@ const PaymentConfigSchema = z.object({
   SUPABASE_JWT_SECRET: z.string().default('super-secret-jwt-token-with-minimum-32-chars-long!'),
   SERVICE_SECRET: z.string().default('dev_internal_sync_token_secret'),
   DEFAULT_WORKSHOP_PRICE_PAISE: z.coerce.number().default(49900), // Default ₹499
+  PROFILE_SERVICE_URL: z.string().default('http://localhost:4004'),
 });
 
 export type PaymentConfig = z.infer<typeof PaymentConfigSchema>;
@@ -57,6 +58,11 @@ export class PaymentConfigService {
 
   get serviceSecret(): string {
     return this.config.SERVICE_SECRET;
+  }
+
+  get profileServiceUrl(): string {
+    const raw = this.config.PROFILE_SERVICE_URL || 'http://127.0.0.1:4004';
+    return raw.replace('//localhost:', '//127.0.0.1:');
   }
 
   get defaultWorkshopPricePaise(): number {

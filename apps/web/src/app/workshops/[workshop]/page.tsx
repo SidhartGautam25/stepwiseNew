@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useWorkshopOverview } from '../../../hooks/use-workshop-overview';
 import { useEnrollment } from '../../../hooks/use-enrollment';
+import { useUserEnrollments } from '../../../hooks/use-profile';
 import { useRazorpayCheckout } from '../../../hooks/use-razorpay-checkout';
 import { NeoBadge } from '../../../components/ui/NeoBadge';
 import { NeoButton } from '../../../components/ui/NeoButton';
@@ -27,7 +28,16 @@ export default function WorkshopOverviewPage() {
     fetchStarter,
     isDownloadModalOpen,
     setDownloadModalOpen,
+    refetchProgress,
   } = useEnrollment(workshopSlug);
+
+  const { data: userEnrollments, refetch: refetchUserEnrollments } = useUserEnrollments();
+  const isUserEnrolled =
+    Boolean(isEnrolled) ||
+    Boolean(
+      Array.isArray(userEnrollments) &&
+        userEnrollments.some((e) => e?.workshopSlug === workshopSlug),
+    );
 
   const { buyWorkshop, isCheckingOut, error: paymentError, clearError } = useRazorpayCheckout();
   const [purchaseSuccessMessage, setPurchaseSuccessMessage] = useState<string | null>(null);
@@ -87,22 +97,43 @@ export default function WorkshopOverviewPage() {
   const handleBuy = async () => {
     clearError();
     setPurchaseSuccessMessage(null);
-    await buyWorkshop(workshop.slug, workshop.title, {
-      onSuccess: async () => {
-        setPurchaseSuccessMessage('Payment successful! Your workshop is unlocked.');
+    try {
+      await buyWorkshop(workshop.slug, workshop.title, {
+        onSuccess: async () => {
+          setPurchaseSuccessMessage('Payment successful! Your workshop is unlocked.');
+          try {
+            await enroll(selectedLanguage);
+          } catch (err: any) {
+            console.warn('Enrollment sync error after purchase:', err);
+          }
+          await refetchProgress();
+          await refetchUserEnrollments();
+          refetch();
+        },
+      });
+    } catch (buyErr: any) {
+      if (
+        buyErr?.message?.toLowerCase().includes('already purchased') ||
+        buyErr?.status === 409 ||
+        buyErr?.statusCode === 409
+      ) {
+        setPurchaseSuccessMessage('Workshop is already purchased! Access unlocked.');
         try {
           await enroll(selectedLanguage);
-        } catch {
-          // Handled via asynchronous event
+        } catch (err: any) {
+          console.warn('Enrollment sync error:', err);
         }
-      },
-    });
+        await refetchProgress();
+        await refetchUserEnrollments();
+        refetch();
+      }
+    }
   };
 
   const handleEnrollOrDownload = async () => {
-    if (isEnrolled && starterInfo) {
+    if (isUserEnrolled && starterInfo) {
       setDownloadModalOpen(true);
-    } else if (isEnrolled) {
+    } else if (isUserEnrolled) {
       await fetchStarter(selectedLanguage);
     } else {
       try {
@@ -170,9 +201,9 @@ export default function WorkshopOverviewPage() {
           <span className="text-xs font-mono font-bold text-black tracking-tight">
             {workshop.totalSteps} Total Steps • {workshop.estimatedTime}
           </span>
-          {isEnrolled && enrolledLanguage && (
+          {isUserEnrolled && (enrolledLanguage || selectedLanguage) && (
             <NeoBadge variant="yellow" hasShadow className="font-mono text-xs font-bold uppercase">
-              Enrolled ({enrolledLanguage.toUpperCase()})
+              Enrolled ({(enrolledLanguage || selectedLanguage).toUpperCase()})
             </NeoBadge>
           )}
         </div>
@@ -212,7 +243,7 @@ export default function WorkshopOverviewPage() {
           </div>
 
           <div className="pt-2 sm:pt-4 flex flex-wrap items-center gap-4">
-            {isEnrolled ? (
+            {isUserEnrolled ? (
               <NeoButton
                 variant="yellow"
                 size="lg"
@@ -239,7 +270,7 @@ export default function WorkshopOverviewPage() {
             {firstStepUrl && (
               <Link href={firstStepUrl}>
                 <NeoButton variant="white" size="lg">
-                  {isEnrolled ? 'Go to Step 1 →' : 'Preview Step 1 →'}
+                  {isUserEnrolled ? 'Go to Step 1 →' : 'Preview Step 1 →'}
                 </NeoButton>
               </Link>
             )}
@@ -335,7 +366,7 @@ export default function WorkshopOverviewPage() {
               Steps are sequential. Complete each step by pushing to GitHub to unlock subsequent steps.
             </p>
           </div>
-          {isEnrolled && (
+          {isUserEnrolled && (
             <NeoBadge variant="pink" hasShadow className="font-mono text-xs font-bold uppercase self-start sm:self-auto">
               Progression Active
             </NeoBadge>
@@ -365,7 +396,7 @@ export default function WorkshopOverviewPage() {
                 {chapter.steps.map((step) => {
                   const status =
                     stepStatusMap[step.slug] ||
-                    (isEnrolled
+                    (isUserEnrolled
                       ? step.globalOrder === 1
                         ? 'AVAILABLE'
                         : 'LOCKED'

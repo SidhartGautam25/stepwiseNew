@@ -44,15 +44,86 @@ export class EnrollmentService {
   }
 
   async getProgress(userId: string, workshopSlug: string, language?: string) {
-    if (language) {
-      return this.repository.findEnrollment(userId, workshopSlug, language);
+    let enrollment = language
+      ? await this.repository.findEnrollment(userId, workshopSlug, language)
+      : (await this.repository.findUserEnrollments(userId)).find((e) => e.workshopSlug === workshopSlug) || null;
+
+    if (!enrollment) {
+      // Self-healing: if paid in payment-service, auto-enroll immediately
+      const hasPaid = await this.checkUserOwnsWorkshop(userId, workshopSlug);
+      if (hasPaid) {
+        this.logger.log(
+          `Self-healing: Found paid order in payment-service for user [${userId}] workshop [${workshopSlug}]. Auto-enrolling...`,
+        );
+        enrollment = await this.enroll(userId, workshopSlug, language || 'typescript');
+        await this.eventPublisher.publishEnrollmentCreated({
+          userId,
+          workshopSlug,
+          language: language || 'typescript',
+          enrolledAt: new Date().toISOString(),
+        });
+      }
     }
-    const enrollments = await this.repository.findUserEnrollments(userId);
-    return enrollments.find((e) => e.workshopSlug === workshopSlug) || null;
+
+    if (!enrollment) {
+      return {
+        isEnrolled: false,
+        enrollmentId: null,
+        workshopSlug,
+        language: null,
+        steps: [],
+      };
+    }
+
+    return {
+      isEnrolled: true,
+      enrollmentId: enrollment.id,
+      workshopSlug: enrollment.workshopSlug,
+      language: enrollment.language,
+      enrolledAt: enrollment.enrolledAt ? new Date(enrollment.enrolledAt).toISOString() : new Date().toISOString(),
+      steps: enrollment.steps || [],
+      id: enrollment.id,
+      userId: enrollment.userId,
+    };
   }
 
   async getAllProgress(userId: string) {
-    return this.repository.findUserEnrollments(userId);
+    let enrollments = await this.repository.findUserEnrollments(userId);
+
+    // Self-healing: Check payment-service for any paid workshops not yet enrolled
+    try {
+      const paidSlugs = await this.getUserPaidWorkshops(userId);
+      const enrolledSlugs = new Set(enrollments.map((e) => e.workshopSlug));
+      let enrolledAny = false;
+
+      for (const slug of paidSlugs) {
+        if (!enrolledSlugs.has(slug)) {
+          this.logger.log(
+            `Self-healing: Auto-enrolling user [${userId}] in purchased workshop [${slug}] on dashboard load...`,
+          );
+          await this.enroll(userId, slug, 'typescript');
+          try {
+            await this.eventPublisher.publishEnrollmentCreated({
+              userId,
+              workshopSlug: slug,
+              language: 'typescript',
+              enrolledAt: new Date().toISOString(),
+            });
+          } catch {
+            // Non-blocking event publish
+          }
+          enrolledAny = true;
+        }
+      }
+
+      if (enrolledAny) {
+        enrollments = await this.repository.findUserEnrollments(userId);
+      }
+    } catch (err: any) {
+      this.logger.warn(`Could not sync paid workshops from payment-service: ${err.message}`);
+    }
+
+    return enrollments;
   }
 
   /**
@@ -107,12 +178,12 @@ export class EnrollmentService {
   }
 
   /**
-   * Verifies with payment-service whether user owns/paid for a workshop
+   * Verifies with payment-service via HTTP whether user owns/paid for a workshop
    */
   async checkUserOwnsWorkshop(userId: string, workshopSlug: string): Promise<boolean> {
     const url = `${this.config.paymentServiceUrl}/internal/payments/users/${encodeURIComponent(userId)}/workshops/${encodeURIComponent(workshopSlug)}`;
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 3000);
+    const timeout = setTimeout(() => controller.abort(), 4000);
 
     try {
       const res = await fetch(url, {
@@ -128,11 +199,45 @@ export class EnrollmentService {
         return false;
       }
 
-      const data = (await res.json()) as { hasAccess: boolean };
-      return Boolean(data.hasAccess);
+      const data = (await res.json()) as { hasAccess?: boolean; purchased?: boolean };
+      return Boolean(data.hasAccess ?? data.purchased);
     } catch (err: any) {
       this.logger.warn(`Could not reach payment-service to verify purchase status: ${err.message}`);
       return false;
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+
+  /**
+   * Internal query: get all paid workshop slugs for a user from payment-service via HTTP
+   */
+  async getUserPaidWorkshops(userId: string): Promise<string[]> {
+    const url = `${this.config.paymentServiceUrl}/internal/payments/users/${encodeURIComponent(userId)}/paid`;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 4000);
+
+    try {
+      const res = await fetch(url, {
+        headers: {
+          'x-service-token': this.config.serviceSecret,
+          Authorization: `Bearer ${this.config.serviceSecret}`,
+          Accept: 'application/json',
+        },
+        signal: controller.signal,
+      });
+
+      if (!res.ok) {
+        return [];
+      }
+
+      const data = (await res.json()) as { paidWorkshops?: string[] } | string[];
+      if (Array.isArray(data)) {
+        return data;
+      }
+      return (data as any)?.paidWorkshops || [];
+    } catch {
+      return [];
     } finally {
       clearTimeout(timeout);
     }

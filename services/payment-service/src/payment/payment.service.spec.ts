@@ -214,6 +214,7 @@ describe('PaymentService', () => {
 
       const status = await service.getWorkshopPurchaseStatus('user-1', 'http-server');
       expect(status.purchased).toBe(true);
+      expect(status.hasAccess).toBe(true);
       expect(status.orderId).toBe('order_rzp_123');
     });
 
@@ -222,6 +223,20 @@ describe('PaymentService', () => {
 
       const status = await service.getWorkshopPurchaseStatus('user-1', 'http-server');
       expect(status.purchased).toBe(false);
+      expect(status.hasAccess).toBe(false);
+    });
+  });
+
+  describe('getUserPaidWorkshops', () => {
+    it('returns unique list of paid workshop slugs', async () => {
+      mockPrisma.paymentOrder.findMany.mockResolvedValueOnce([
+        { workshopSlug: 'http-server' },
+        { workshopSlug: 'build-your-own-git' },
+        { workshopSlug: 'http-server' },
+      ]);
+
+      const slugs = await service.getUserPaidWorkshops('user-1');
+      expect(slugs).toEqual(['http-server', 'build-your-own-git']);
     });
   });
 });
