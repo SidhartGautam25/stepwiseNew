@@ -76,6 +76,9 @@ export function useRazorpayCheckout() {
                 orderId: orderData.orderId,
                 paymentId: `pay_mock_${Date.now()}`,
                 signature: `mock_sig_${orderData.orderId}`,
+                razorpayOrderId: orderData.orderId,
+                razorpayPaymentId: `pay_mock_${Date.now()}`,
+                razorpaySignature: `mock_sig_${orderData.orderId}`,
               }),
             });
 
@@ -122,6 +125,9 @@ export function useRazorpayCheckout() {
                   orderId: response.razorpay_order_id,
                   paymentId: response.razorpay_payment_id,
                   signature: response.razorpay_signature,
+                  razorpayOrderId: response.razorpay_order_id,
+                  razorpayPaymentId: response.razorpay_payment_id,
+                  razorpaySignature: response.razorpay_signature,
                 }),
               });
 
