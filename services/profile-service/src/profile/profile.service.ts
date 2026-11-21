@@ -1,6 +1,8 @@
-import { Injectable, Inject, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Inject, Logger, NotFoundException, forwardRef } from '@nestjs/common';
 import { ProfileRepository } from './profile.repository.js';
-import type { UserRegisteredV1 } from '@app/contracts';
+import { EnrollmentService } from '../enrollment/enrollment.service.js';
+import { ProfileEventPublisherService } from '../events/profile-event-publisher.service.js';
+import type { UserRegisteredV1, PaymentSucceededPayload } from '@app/contracts';
 
 @Injectable()
 export class ProfileService {
@@ -9,6 +11,10 @@ export class ProfileService {
   constructor(
     @Inject(ProfileRepository)
     private readonly repository: ProfileRepository,
+    @Inject(forwardRef(() => EnrollmentService))
+    private readonly enrollmentService: EnrollmentService,
+    @Inject(forwardRef(() => ProfileEventPublisherService))
+    private readonly eventPublisher: ProfileEventPublisherService,
   ) {}
 
   /**
@@ -57,6 +63,43 @@ export class ProfileService {
     });
 
     return profile;
+  }
+
+  /**
+   * Handles asynchronous payment.succeeded event:
+   * JIT provisions user if needed, records activity, creates enrollment, and publishes profile.enrollment.created
+   */
+  async handlePaymentSucceeded(eventData: PaymentSucceededPayload) {
+    this.logger.log(
+      `Handling payment.succeeded event for user [${eventData.userId}] workshop [${eventData.workshopSlug}] order [${eventData.orderId}]`,
+    );
+
+    const profile = await this.getProfile(eventData.userId);
+    const chosenLanguage = profile.defaultLanguage || 'typescript';
+
+    await this.repository.recordActivity(eventData.userId, 'WORKSHOP_PURCHASED', {
+      orderId: eventData.orderId,
+      paymentId: eventData.paymentId,
+      amount: eventData.amount,
+      currency: eventData.currency,
+      workshopSlug: eventData.workshopSlug,
+      paidAt: eventData.paidAt,
+    });
+
+    const enrollment = await this.enrollmentService.enroll(
+      eventData.userId,
+      eventData.workshopSlug,
+      chosenLanguage,
+    );
+
+    await this.eventPublisher.publishEnrollmentCreated({
+      userId: eventData.userId,
+      workshopSlug: eventData.workshopSlug,
+      language: chosenLanguage,
+      enrolledAt: eventData.paidAt || new Date().toISOString(),
+    });
+
+    return enrollment;
   }
 
   async updateProfile(userId: string, data: { displayName?: string; avatarUrl?: string }) {

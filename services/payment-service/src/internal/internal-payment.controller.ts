@@ -1,9 +1,11 @@
 import { Controller, Get, Param, UseGuards } from '@nestjs/common';
-import { ServiceAuthGuard, ServiceOnly } from '@app/auth';
+import { Public } from '@app/auth';
 import { PaymentService } from '../payment/payment.service.js';
+import { InternalAuthGuard } from './internal-auth.guard.js';
 
 @Controller('internal/payments')
-@UseGuards(ServiceAuthGuard)
+@Public()
+@UseGuards(InternalAuthGuard)
 export class InternalPaymentController {
   constructor(private readonly paymentService: PaymentService) {}
 
@@ -11,7 +13,6 @@ export class InternalPaymentController {
    * Service-to-service query: Check if user owns / paid for a workshop
    */
   @Get('users/:userId/workshops/:workshopSlug')
-  @ServiceOnly('payment:read')
   async checkPurchaseStatus(
     @Param('userId') userId: string,
     @Param('workshopSlug') workshopSlug: string,
@@ -19,3 +20,4 @@ export class InternalPaymentController {
     return this.paymentService.getWorkshopPurchaseStatus(userId, workshopSlug);
   }
 }
+
