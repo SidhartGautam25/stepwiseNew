@@ -14,6 +14,7 @@ export const EVENT_PATTERNS = {
   RUN_FAILED: 'run.failed',
   STEP_UNLOCKED: 'step.unlocked',
   PAYMENT_SUCCEEDED: 'payment.succeeded',
+  ENROLLMENT_CREATED: 'profile.enrollment.created',
 } as const;
 
 export interface EventEnvelope<T = unknown> {
@@ -77,5 +78,13 @@ export interface PaymentSucceededPayload {
   currency: string;
   paidAt: string;
 }
+
+export interface EnrollmentCreatedPayload {
+  userId: string;
+  workshopSlug: string;
+  language: string;
+  enrolledAt: string;
+}
+
 
 

@@ -1,7 +1,17 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ProfileService } from './profile/profile.service.js';
 import { EnrollmentService } from './enrollment/enrollment.service.js';
-import { QUEUE_AUTH_EVENTS, TOPIC_EXCHANGE, ROUTING_KEY_USER_REGISTERED } from './events/auth-event-consumer.service.js';
+import {
+  QUEUE_AUTH_EVENTS,
+  TOPIC_EXCHANGE,
+  ROUTING_KEY_USER_REGISTERED,
+} from './events/auth-event-consumer.service.js';
+import {
+  QUEUE_PAYMENT_EVENTS,
+  ROUTING_KEY_PAYMENT_SUCCEEDED,
+} from './events/payment-event-consumer.service.js';
+import { InternalAccessController } from './access/internal-access.controller.js';
+import { InternalAuthGuard } from './internal/internal-auth.guard.js';
 import { SupabaseJwtVerifier, JwtAuthGuard } from '@app/auth';
 import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
@@ -10,6 +20,8 @@ import * as jose from 'jose';
 describe('ProfileService Core & JIT Provisioning', () => {
   let profileService: ProfileService;
   let mockRepository: any;
+  let mockEnrollmentService: any;
+  let mockEventPublisher: any;
 
   beforeEach(() => {
     mockRepository = {
@@ -20,7 +32,23 @@ describe('ProfileService Core & JIT Provisioning', () => {
       getActivities: vi.fn(),
     };
 
-    profileService = new ProfileService(mockRepository);
+    mockEnrollmentService = {
+      enroll: vi.fn(),
+      getProgress: vi.fn(),
+      getAllProgress: vi.fn(),
+      checkAccess: vi.fn(),
+      checkUserOwnsWorkshop: vi.fn(),
+    };
+
+    mockEventPublisher = {
+      publishEnrollmentCreated: vi.fn().mockResolvedValue(true),
+    };
+
+    profileService = new ProfileService(
+      mockRepository,
+      mockEnrollmentService,
+      mockEventPublisher,
+    );
   });
 
   it('returns existing user profile when found', async () => {
@@ -97,6 +125,58 @@ describe('ProfileService Core & JIT Provisioning', () => {
     expect(mockRepository.recordActivity).toHaveBeenCalledTimes(2);
   });
 
+  it('handles payment.succeeded event: provisions user, records activity, creates enrollment, and emits enrollment event', async () => {
+    mockRepository.findById.mockResolvedValue({
+      userId: 'user-paid-1',
+      email: 'paid@handrail.dev',
+      defaultLanguage: 'python',
+    });
+    mockRepository.recordActivity.mockResolvedValue({});
+    mockEnrollmentService.enroll.mockResolvedValue({
+      id: 'enr-999',
+      userId: 'user-paid-1',
+      workshopSlug: 'build-your-own-docker',
+      language: 'python',
+    });
+
+    const paymentEvent = {
+      orderId: 'order_123',
+      paymentId: 'pay_123',
+      userId: 'user-paid-1',
+      workshopSlug: 'build-your-own-docker',
+      amount: 49900,
+      currency: 'INR',
+      paidAt: '2026-11-21T12:00:00.000Z',
+    };
+
+    const result = await profileService.handlePaymentSucceeded(paymentEvent);
+
+    expect(result.id).toBe('enr-999');
+    expect(mockRepository.recordActivity).toHaveBeenCalledWith(
+      'user-paid-1',
+      'WORKSHOP_PURCHASED',
+      expect.objectContaining({
+        orderId: 'order_123',
+        amount: 49900,
+        currency: 'INR',
+        workshopSlug: 'build-your-own-docker',
+      }),
+    );
+    expect(mockEnrollmentService.enroll).toHaveBeenCalledWith(
+      'user-paid-1',
+      'build-your-own-docker',
+      'python',
+    );
+    expect(mockEventPublisher.publishEnrollmentCreated).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: 'user-paid-1',
+        workshopSlug: 'build-your-own-docker',
+        language: 'python',
+        enrolledAt: '2026-11-21T12:00:00.000Z',
+      }),
+    );
+  });
+
   it('updates profile and preferences', async () => {
     mockRepository.update.mockResolvedValue({
       userId: '123',
@@ -115,6 +195,8 @@ describe('ProfileService Core & JIT Provisioning', () => {
 describe('Enrollment & Progress Domain', () => {
   let enrollmentService: EnrollmentService;
   let mockRepository: any;
+  let mockConfig: any;
+  let mockEventPublisher: any;
 
   beforeEach(() => {
     mockRepository = {
@@ -123,7 +205,16 @@ describe('Enrollment & Progress Domain', () => {
       createEnrollment: vi.fn(),
     };
 
-    enrollmentService = new EnrollmentService(mockRepository);
+    mockConfig = {
+      paymentServiceUrl: 'http://localhost:4007',
+      serviceSecret: 'test_service_secret',
+    };
+
+    mockEventPublisher = {
+      publishEnrollmentCreated: vi.fn().mockResolvedValue(true),
+    };
+
+    enrollmentService = new EnrollmentService(mockRepository, mockConfig, mockEventPublisher);
   });
 
   it('enrolls user with first step AVAILABLE and remaining steps LOCKED', async () => {
@@ -150,6 +241,115 @@ describe('Enrollment & Progress Domain', () => {
     const res = await enrollmentService.enroll('user-123', 'build-your-own-git', 'go');
     expect(res).toBe(existing);
     expect(mockRepository.createEnrollment).not.toHaveBeenCalled();
+  });
+
+  describe('checkAccess - Gated Content Unlocking', () => {
+    it('returns unlocked chapters and current chapter when user is enrolled', async () => {
+      mockRepository.findUserEnrollments.mockResolvedValue([
+        {
+          workshopSlug: 'build-your-own-redis',
+          steps: [
+            { stepSlug: 'step-1', status: 'COMPLETED' },
+            { stepSlug: 'step-2', status: 'AVAILABLE' },
+            { stepSlug: 'step-3', status: 'LOCKED' },
+          ],
+        },
+      ]);
+
+      const access = await enrollmentService.checkAccess('user-1', 'build-your-own-redis');
+
+      expect(access.enrolled).toBe(true);
+      expect(access.unlockedChapters).toEqual(['step-1', 'step-2']);
+      expect(access.currentChapterId).toBe('step-2');
+    });
+
+    it('self-heals and auto-enrolls when user paid but enrollment record is pending', async () => {
+      mockRepository.findUserEnrollments.mockResolvedValue([]);
+      mockRepository.findEnrollment.mockResolvedValue(null);
+      mockRepository.createEnrollment.mockImplementation((data: any) => Promise.resolve(data));
+
+      // Mock checkUserOwnsWorkshop returning true
+      vi.spyOn(enrollmentService, 'checkUserOwnsWorkshop').mockResolvedValue(true);
+
+      const access = await enrollmentService.checkAccess('user-paid', 'build-your-own-redis');
+
+      expect(access.enrolled).toBe(true);
+      expect(access.unlockedChapters).toEqual(['step-1']);
+      expect(access.currentChapterId).toBe('step-1');
+      expect(mockEventPublisher.publishEnrollmentCreated).toHaveBeenCalled();
+    });
+
+    it('returns enrolled: false and empty unlocked chapters when user has neither enrolled nor paid', async () => {
+      mockRepository.findUserEnrollments.mockResolvedValue([]);
+      vi.spyOn(enrollmentService, 'checkUserOwnsWorkshop').mockResolvedValue(false);
+
+      const access = await enrollmentService.checkAccess('user-unpaid', 'build-your-own-redis');
+
+      expect(access.enrolled).toBe(false);
+      expect(access.unlockedChapters).toEqual([]);
+    });
+  });
+});
+
+describe('InternalAccessController', () => {
+  it('delegates checkAccess query to EnrollmentService', async () => {
+    const mockEnrollmentService = {
+      checkAccess: vi.fn().mockResolvedValue({
+        enrolled: true,
+        unlockedChapters: ['step-1'],
+        currentChapterId: 'step-1',
+      }),
+    };
+
+    const controller = new InternalAccessController(mockEnrollmentService as any);
+    const result = await controller.checkAccess('u-1', 'w-1');
+
+    expect(result.enrolled).toBe(true);
+    expect(mockEnrollmentService.checkAccess).toHaveBeenCalledWith('u-1', 'w-1');
+  });
+});
+
+describe('InternalAuthGuard', () => {
+  const config = { serviceSecret: 'secret_m2m_token' } as any;
+  const guard = new InternalAuthGuard(config);
+
+  function createMockContext(headers: Record<string, string>): ExecutionContext {
+    return {
+      switchToHttp: () => ({
+        getRequest: () => ({
+          headers,
+        }),
+      }),
+    } as unknown as ExecutionContext;
+  }
+
+  it('allows request with valid x-service-token header', () => {
+    const req: any = { headers: { 'x-service-token': 'secret_m2m_token' } };
+    const ctx = {
+      switchToHttp: () => ({ getRequest: () => req }),
+    } as unknown as ExecutionContext;
+
+    expect(guard.canActivate(ctx)).toBe(true);
+    expect(req.user.isService).toBe(true);
+    expect(req.user.scopes).toContain('profile:read');
+  });
+
+  it('allows request with valid Bearer service token header', () => {
+    const req: any = { headers: { authorization: 'Bearer secret_m2m_token' } };
+    const ctx = {
+      switchToHttp: () => ({ getRequest: () => req }),
+    } as unknown as ExecutionContext;
+
+    expect(guard.canActivate(ctx)).toBe(true);
+    expect(req.user.isService).toBe(true);
+  });
+
+  it('rejects request with missing or incorrect service token', () => {
+    const ctx = createMockContext({ 'x-service-token': 'wrong_token' });
+    expect(() => guard.canActivate(ctx)).toThrow(UnauthorizedException);
+
+    const ctxEmpty = createMockContext({});
+    expect(() => guard.canActivate(ctxEmpty)).toThrow(UnauthorizedException);
   });
 });
 
@@ -185,7 +385,6 @@ describe('Defense-In-Depth Local Token Verification in profile-service', () => {
     const context = createMockContext({
       'x-user-id': 'forged-attacker-id',
       'x-user-email': 'attacker@evil.com',
-      // No Authorization Bearer token provided
     });
 
     await expect(guard.canActivate(context)).rejects.toThrow(UnauthorizedException);
@@ -227,9 +426,11 @@ describe('Defense-In-Depth Local Token Verification in profile-service', () => {
 });
 
 describe('RabbitMQ Topology Constants for profile-service', () => {
-  it('binds to durable queue and topic exchange', () => {
+  it('binds to durable queue and topic exchange for auth and payment events', () => {
     expect(QUEUE_AUTH_EVENTS).toBe('profile-service.auth-events');
+    expect(QUEUE_PAYMENT_EVENTS).toBe('profile-service.payment-events');
     expect(TOPIC_EXCHANGE).toBe('platform.events');
     expect(ROUTING_KEY_USER_REGISTERED).toBe('auth.user.registered');
+    expect(ROUTING_KEY_PAYMENT_SUCCEEDED).toBe('payment.succeeded');
   });
 });
