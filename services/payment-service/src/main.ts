@@ -10,7 +10,6 @@ async function bootstrap() {
     rawBody: true,
   });
 
-  app.enableCors();
   app.useGlobalFilters(new AllExceptionsFilter());
 
   const config = new DocumentBuilder()
@@ -24,7 +23,7 @@ async function bootstrap() {
   SwaggerModule.setup('api/docs', app, document);
 
   const port = process.env.PORT || process.env.PORT_PAYMENT || 4007;
-  await app.listen(port);
+  await app.listen(port, '0.0.0.0');
   logger.log(`Payment Service running on port ${port}`, 'Bootstrap');
 }
 

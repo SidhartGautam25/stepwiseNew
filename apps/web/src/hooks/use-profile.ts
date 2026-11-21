@@ -112,3 +112,31 @@ export function useActivity() {
     staleTime: 30 * 1000,
   });
 }
+
+export interface UserEnrollment {
+  id: string;
+  userId: string;
+  workshopSlug: string;
+  language: string;
+  enrolledAt: string;
+  steps: Array<{
+    id: string;
+    stepSlug: string;
+    globalOrder: number;
+    status: 'LOCKED' | 'AVAILABLE' | 'COMPLETED';
+    completedAt?: string | null;
+  }>;
+}
+
+export function useUserEnrollments() {
+  const { session, status } = useAuth();
+  const isAuthenticated = status === 'authenticated' && !!session?.user;
+
+  return useQuery<UserEnrollment[], Error>({
+    queryKey: ['profile', 'enrollments'],
+    queryFn: () => apiFetch<UserEnrollment[]>('/v1/progress'),
+    enabled: isAuthenticated,
+    staleTime: 30 * 1000,
+  });
+}
+

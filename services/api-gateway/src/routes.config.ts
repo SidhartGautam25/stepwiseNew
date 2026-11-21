@@ -11,12 +11,16 @@ export interface RouteConfig {
   matcher?: (pathname: string, method: string) => boolean;
 }
 
+function normalizeTarget(url: string): string {
+  return url.replace('//localhost:', '//127.0.0.1:');
+}
+
 export function getGatewayRoutes(): RouteConfig[] {
-  const authServiceUrl = process.env.AUTH_SERVICE_URL || 'http://localhost:4006';
-  const catalogServiceUrl = process.env.CATALOG_SERVICE_URL || 'http://localhost:4001';
-  const profileServiceUrl = process.env.PROFILE_SERVICE_URL || 'http://localhost:4004';
-  const verificationServiceUrl = process.env.VERIFICATION_SERVICE_URL || 'http://localhost:4003';
-  const paymentServiceUrl = process.env.PAYMENT_SERVICE_URL || 'http://localhost:4007';
+  const authServiceUrl = normalizeTarget(process.env.AUTH_SERVICE_URL || 'http://127.0.0.1:4006');
+  const catalogServiceUrl = normalizeTarget(process.env.CATALOG_SERVICE_URL || 'http://127.0.0.1:4001');
+  const profileServiceUrl = normalizeTarget(process.env.PROFILE_SERVICE_URL || 'http://127.0.0.1:4004');
+  const verificationServiceUrl = normalizeTarget(process.env.VERIFICATION_SERVICE_URL || 'http://127.0.0.1:4003');
+  const paymentServiceUrl = normalizeTarget(process.env.PAYMENT_SERVICE_URL || 'http://127.0.0.1:4007');
 
   return [
     // --- 1. Public Auth Endpoints ---
@@ -122,7 +126,7 @@ export function getGatewayRoutes(): RouteConfig[] {
       target: catalogServiceUrl,
       authMode: 'jwt',
       matcher: (pathname) =>
-        /^\/v1\/workshops\/[^/]+\/(chapters(\/.*)?|starter)$/.test(pathname),
+        /^\/v1\/workshops\/[^/]+\/(chapters(\/.*)?|steps(\/.*)?|starter)$/.test(pathname),
     },
     {
       id: 'starters-download-public',

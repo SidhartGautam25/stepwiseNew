@@ -3,14 +3,15 @@
 import React from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/auth-context';
-import { useProfile, useActivity } from '@/hooks/use-profile';
+import { useProfile, useActivity, useUserEnrollments } from '@/hooks/use-profile';
 import { NeoButton } from '@/components/ui/NeoButton';
 import { NeoBadge } from '@/components/ui/NeoBadge';
 
 export default function DashboardPage() {
   const { user } = useAuth();
-  const { data: profile, isLoading: isProfileLoading } = useProfile();
+  const { data: profile } = useProfile();
   const { data: activities, isLoading: isActivityLoading } = useActivity();
+  const { data: enrollments, isLoading: isEnrollmentsLoading } = useUserEnrollments();
 
   return (
     <div className="space-y-8">
@@ -92,11 +93,11 @@ export default function DashboardPage() {
           </div>
           <div className="space-y-3 font-mono text-xs">
             <p className="text-zinc-700">
-              Pick a workshop to build a verified distributed system locally with GitHub Actions verification.
+              Build production-grade distributed systems locally with real test suites and automated verification.
             </p>
             <div className="pt-2">
               <Link href="/workshops" className="text-black font-bold underline hover:bg-[#FFDE59]">
-                View 4 Available Workshops &rarr;
+                View All Workshops &rarr;
               </Link>
             </div>
           </div>
@@ -119,6 +120,80 @@ export default function DashboardPage() {
             </p>
           </div>
         </div>
+      </div>
+
+      {/* Enrolled Workshops Section */}
+      <div className="bg-white border-2 border-black p-6 shadow-[4px_4px_0px_#000] space-y-4">
+        <div className="border-b-2 border-black pb-3 flex items-center justify-between">
+          <div>
+            <h2 className="font-mono font-bold text-lg uppercase text-black">
+              My Purchased & Enrolled Workshops
+            </h2>
+            <p className="font-mono text-xs text-zinc-500">
+              Workshops unlocked for your profile
+            </p>
+          </div>
+          <Link href="/workshops">
+            <NeoButton variant="yellow" size="sm">
+              + Explore More
+            </NeoButton>
+          </Link>
+        </div>
+
+        {isEnrollmentsLoading ? (
+          <div className="py-8 text-center font-mono text-sm text-zinc-500">
+            Loading enrolled workshops...
+          </div>
+        ) : enrollments && enrollments.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {enrollments.map((enr) => {
+              const completedCount =
+                enr.steps?.filter((s) => s.status === 'COMPLETED').length || 0;
+              const totalCount = enr.steps?.length || 5;
+
+              return (
+                <div
+                  key={enr.id}
+                  className="border-2 border-black p-4 rounded-[2px] bg-stone-50 flex flex-col justify-between gap-4 shadow-hard-sm"
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <NeoBadge variant="pink" className="font-mono text-[10px] uppercase">
+                        {enr.language}
+                      </NeoBadge>
+                      <span className="text-[11px] font-mono font-bold text-zinc-500">
+                        {completedCount} / {totalCount} Steps Completed
+                      </span>
+                    </div>
+                    <h3 className="font-mono font-bold text-base text-black capitalize">
+                      {enr.workshopSlug.replace(/-/g, ' ')}
+                    </h3>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-2 pt-2 border-t border-black/10">
+                    <span className="text-[11px] font-mono text-zinc-500">
+                      Enrolled: {new Date(enr.enrolledAt).toLocaleDateString()}
+                    </span>
+                    <Link href={`/workshops/${enr.workshopSlug}`}>
+                      <NeoButton variant="yellow" size="sm">
+                        Continue Workshop →
+                      </NeoButton>
+                    </Link>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="py-8 text-center font-mono text-sm text-zinc-500 space-y-3">
+            <p>You haven&apos;t enrolled in any workshops yet.</p>
+            <Link href="/workshops">
+              <NeoButton variant="yellow" size="sm">
+                Browse & Unlock Workshops
+              </NeoButton>
+            </Link>
+          </div>
+        )}
       </div>
 
       {/* Recent Activity Section */}

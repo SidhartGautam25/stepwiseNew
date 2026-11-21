@@ -21,7 +21,7 @@ async function bootstrap() {
   SwaggerModule.setup('api/docs', app, document);
 
   const port = process.env.PORT || process.env.PORT_PROGRESS || process.env.PORT_PROFILE || 4004;
-  await app.listen(port);
+  await app.listen(port, '0.0.0.0');
   logger.log(`Profile Service is running on port ${port}`, 'Bootstrap');
 }
 

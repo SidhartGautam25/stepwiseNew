@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useWorkshopOverview } from '../../../hooks/use-workshop-overview';
 import { useEnrollment } from '../../../hooks/use-enrollment';
+import { useRazorpayCheckout } from '../../../hooks/use-razorpay-checkout';
 import { NeoBadge } from '../../../components/ui/NeoBadge';
 import { NeoButton } from '../../../components/ui/NeoButton';
 import { NeoCard } from '../../../components/ui/NeoCard';
@@ -28,6 +29,8 @@ export default function WorkshopOverviewPage() {
     setDownloadModalOpen,
   } = useEnrollment(workshopSlug);
 
+  const { buyWorkshop, isCheckingOut, error: paymentError, clearError } = useRazorpayCheckout();
+  const [purchaseSuccessMessage, setPurchaseSuccessMessage] = useState<string | null>(null);
   const [selectedLanguage, setSelectedLanguage] = useState<string>('go');
 
   useEffect(() => {
@@ -81,18 +84,73 @@ export default function WorkshopOverviewPage() {
     }
   }
 
+  const handleBuy = async () => {
+    clearError();
+    setPurchaseSuccessMessage(null);
+    await buyWorkshop(workshop.slug, workshop.title, {
+      onSuccess: async () => {
+        setPurchaseSuccessMessage('Payment successful! Your workshop is unlocked.');
+        try {
+          await enroll(selectedLanguage);
+        } catch {
+          // Handled via asynchronous event
+        }
+      },
+    });
+  };
+
   const handleEnrollOrDownload = async () => {
     if (isEnrolled && starterInfo) {
       setDownloadModalOpen(true);
     } else if (isEnrolled) {
       await fetchStarter(selectedLanguage);
     } else {
-      await enroll(selectedLanguage);
+      try {
+        await enroll(selectedLanguage);
+      } catch (err: any) {
+        // If enrollment is gated by purchase, trigger Razorpay checkout modal
+        if (
+          err?.code === 'PAYMENT_REQUIRED' ||
+          err?.status === 403 ||
+          err?.message?.toLowerCase().includes('payment')
+        ) {
+          await handleBuy();
+        }
+      }
     }
   };
 
   return (
     <div className="space-y-12 max-w-5xl mx-auto py-6">
+      {/* Success Notification Banner */}
+      {purchaseSuccessMessage && (
+        <div className="bg-[#D1FAE5] border-2 border-black p-4 rounded-[2px] shadow-hard-sm flex items-center justify-between">
+          <div className="flex items-center gap-2 text-sm font-mono font-bold text-black">
+            <span>🎉</span>
+            <span>{purchaseSuccessMessage}</span>
+          </div>
+          <button
+            onClick={() => setPurchaseSuccessMessage(null)}
+            className="text-xs font-mono font-bold uppercase underline cursor-pointer text-black"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
+
+      {/* Payment Error Banner */}
+      {paymentError && (
+        <div className="bg-[#FEE2E2] border-2 border-black p-4 rounded-[2px] shadow-hard-sm flex items-center justify-between">
+          <div className="flex items-center gap-2 text-sm font-mono font-bold text-red-800">
+            <span>⚠️</span>
+            <span>{paymentError}</span>
+          </div>
+          <NeoButton size="sm" variant="white" onClick={handleBuy}>
+            Try Again
+          </NeoButton>
+        </div>
+      )}
+
       {/* Hero Header Section */}
       <div className="space-y-6 border-b-2 border-black pb-10">
         <div>
@@ -154,23 +212,34 @@ export default function WorkshopOverviewPage() {
           </div>
 
           <div className="pt-2 sm:pt-4 flex flex-wrap items-center gap-4">
-            <NeoButton
-              variant="yellow"
-              size="lg"
-              onClick={handleEnrollOrDownload}
-              disabled={isEnrolling}
-            >
-              {isEnrolling
-                ? 'Preparing Starter...'
-                : isEnrolled
-                ? '⬇ Download Starter Package'
-                : `Enroll & Download Starter (${selectedLanguage.toUpperCase()}) →`}
-            </NeoButton>
+            {isEnrolled ? (
+              <NeoButton
+                variant="yellow"
+                size="lg"
+                onClick={handleEnrollOrDownload}
+                disabled={isEnrolling}
+              >
+                {isEnrolling
+                  ? 'Preparing Starter...'
+                  : '⬇ Download Starter Package'}
+              </NeoButton>
+            ) : (
+              <NeoButton
+                variant="yellow"
+                size="lg"
+                onClick={handleBuy}
+                disabled={isCheckingOut || isEnrolling}
+              >
+                {isCheckingOut
+                  ? 'Launching Checkout...'
+                  : '⚡ Unlock Workshop • ₹499 →'}
+              </NeoButton>
+            )}
 
             {firstStepUrl && (
               <Link href={firstStepUrl}>
                 <NeoButton variant="white" size="lg">
-                  Go to Step 1 →
+                  {isEnrolled ? 'Go to Step 1 →' : 'Preview Step 1 →'}
                 </NeoButton>
               </Link>
             )}
@@ -296,7 +365,13 @@ export default function WorkshopOverviewPage() {
                 {chapter.steps.map((step) => {
                   const status =
                     stepStatusMap[step.slug] ||
-                    (step.globalOrder === 1 ? 'AVAILABLE' : 'LOCKED');
+                    (isEnrolled
+                      ? step.globalOrder === 1
+                        ? 'AVAILABLE'
+                        : 'LOCKED'
+                      : step.globalOrder === 1
+                      ? 'AVAILABLE'
+                      : 'LOCKED');
                   const isLocked = status === 'LOCKED';
 
                   return (

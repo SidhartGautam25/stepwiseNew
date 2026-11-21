@@ -50,5 +50,15 @@ export class CatalogController {
   ) {
     return this.catalogService.getGatedStep(slug, chapterId, stepId, level, user);
   }
+
+  @Get(':slug/steps/:stepId')
+  async getStepDirect(
+    @Param('slug') slug: string,
+    @Param('stepId') stepId: string,
+    @Query('level') level?: ContentLevel,
+    @CurrentUser() user?: AuthenticatedUser,
+  ) {
+    return this.catalogService.getGatedStep(slug, 'any', stepId, level, user);
+  }
 }
 

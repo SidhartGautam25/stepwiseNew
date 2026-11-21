@@ -37,7 +37,7 @@ export function lintContent(contentDir: string): { success: boolean; errors: str
 
   const workshops = fs
     .readdirSync(contentDir, { withFileTypes: true })
-    .filter((d) => d.isDirectory())
+    .filter((d) => d.isDirectory() && !d.name.startsWith('sample-'))
     .map((d) => d.name);
 
   if (workshops.length === 0) {

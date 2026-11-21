@@ -1,3 +1,6 @@
+import dns from 'node:dns';
+dns.setDefaultResultOrder('ipv4first');
+
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
@@ -31,10 +34,14 @@ async function bootstrap() {
         return callback(null, true);
       }
       const cleanOrigin = origin.toLowerCase().replace(/\/+$/, '');
-      if (allowedOrigins.includes(cleanOrigin)) {
+      if (
+        allowedOrigins.includes(cleanOrigin) ||
+        cleanOrigin.includes('localhost:') ||
+        cleanOrigin.includes('127.0.0.1:')
+      ) {
         return callback(null, true);
       }
-      return callback(new Error(`Origin ${origin} not allowed by CORS policy`));
+      return callback(null, false);
     },
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
@@ -44,6 +51,9 @@ async function bootstrap() {
       'X-Requested-With',
       'X-Correlation-Id',
       'x-request-id',
+      'x-csrf-token',
+      'Accept',
+      'Origin',
     ],
   });
 
@@ -66,7 +76,7 @@ async function bootstrap() {
   SwaggerModule.setup('api/docs', app, document);
 
   const port = process.env.PORT || process.env.PORT_API_GATEWAY || 4000;
-  await app.listen(port);
+  await app.listen(port, '0.0.0.0');
   logger.log(`API Gateway is running on port ${port}`, 'Bootstrap');
 }
 

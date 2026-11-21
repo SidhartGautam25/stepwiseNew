@@ -5,6 +5,7 @@ const envSchema = z.object({
   API_INTERNAL_URL: z.string().url().default('http://localhost:4000'),
   AUTH_ACCESS_COOKIE_NAME: z.string().default('hr_at'),
   NEXT_PUBLIC_APP_URL: z.string().url().default('http://localhost:3000'),
+  NEXT_PUBLIC_RAZORPAY_KEY_ID: z.string().default('rzp_test_U2omF4kGKdXFma'),
 });
 
 export const env = envSchema.parse({
@@ -15,4 +16,6 @@ export const env = envSchema.parse({
     process.env.AUTH_ACCESS_COOKIE_NAME ||
     (process.env.NODE_ENV === 'production' ? '__Secure-hr_at' : 'hr_at'),
   NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+  NEXT_PUBLIC_RAZORPAY_KEY_ID:
+    process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_U2omF4kGKdXFma',
 });

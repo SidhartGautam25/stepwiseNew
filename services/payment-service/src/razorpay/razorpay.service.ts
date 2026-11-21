@@ -53,8 +53,14 @@ export class RazorpayService {
    * Create an Order with Razorpay API
    */
   async createOrder(params: RazorpayOrderCreationParams): Promise<RazorpayOrderResponse> {
-    // If running in development / test with mock placeholder keys, generate a deterministic mocked order
-    if (this.config.razorpayKeyId.startsWith('rzp_test_placeholder') || process.env.NODE_ENV === 'test') {
+    const envCheck = this.config.validateEnvironment();
+    if (!envCheck.valid) {
+      this.logger.error(`Razorpay configuration error: ${envCheck.reason}`);
+      throw new BadRequestException(envCheck.reason);
+    }
+
+    // In mock mode (e.g. unit tests or offline dev), return a deterministic mocked order
+    if (this.config.isMockMode) {
       const mockOrderId = `order_${crypto.randomBytes(8).toString('hex')}`;
       this.logger.log(`Mocking Razorpay order creation [${mockOrderId}] for receipt [${params.receipt}]`);
       return {
@@ -106,9 +112,21 @@ export class RazorpayService {
    * Formula: HMAC_SHA256(order_id + "|" + razorpay_payment_id, secret) == razorpay_signature
    */
   verifyPaymentSignature(orderId: string, paymentId: string, signature: string): boolean {
-    // In test environment with placeholder mock keys, allow a test signature or valid mock
-    if (this.config.razorpayKeySecret === 'rzp_secret_placeholder' && signature.startsWith('mock_sig_')) {
+    const envCheck = this.config.validateEnvironment();
+    if (!envCheck.valid) {
+      this.logger.error(`Razorpay configuration error during signature verification: ${envCheck.reason}`);
+      return false;
+    }
+
+    // Mock bypass allowed ONLY when mock mode is enabled in test environment
+    if (this.config.isMockMode && signature.startsWith('mock_sig_')) {
       return true;
+    }
+
+    // Production / Live mode: mock signatures are strictly rejected
+    if (!this.config.isTestMode && signature.startsWith('mock_sig_')) {
+      this.logger.warn(`Rejected mock signature in production/live mode for order [${orderId}]`);
+      return false;
     }
 
     const payload = `${orderId}|${paymentId}`;
@@ -116,6 +134,10 @@ export class RazorpayService {
       .createHmac('sha256', this.config.razorpayKeySecret)
       .update(payload)
       .digest('hex');
+
+    if (expectedSignature.length !== signature.length) {
+      return false;
+    }
 
     return crypto.timingSafeEqual(Buffer.from(expectedSignature), Buffer.from(signature));
   }
@@ -127,8 +149,18 @@ export class RazorpayService {
   verifyWebhookSignature(rawBody: string, signature: string): boolean {
     if (!signature || !rawBody) return false;
 
-    if (this.config.razorpayWebhookSecret === 'rzp_webhook_secret_placeholder' && signature.startsWith('mock_sig_')) {
+    const envCheck = this.config.validateEnvironment();
+    if (!envCheck.valid) {
+      this.logger.error(`Razorpay configuration error during webhook signature verification: ${envCheck.reason}`);
+      return false;
+    }
+
+    if (this.config.isMockMode && signature.startsWith('mock_sig_')) {
       return true;
+    }
+
+    if (!this.config.isTestMode && signature.startsWith('mock_sig_')) {
+      return false;
     }
 
     const expectedSignature = crypto
@@ -147,7 +179,7 @@ export class RazorpayService {
    * Fetch payment details from Razorpay
    */
   async fetchPayment(paymentId: string): Promise<RazorpayPaymentDetails | null> {
-    if (this.config.razorpayKeyId.startsWith('rzp_test_placeholder') || process.env.NODE_ENV === 'test') {
+    if (this.config.isMockMode) {
       return {
         id: paymentId,
         entity: 'payment',
