@@ -143,6 +143,34 @@ services:
       timeout: 5s
       retries: 5
 
+  payment:
+    build:
+      context: ..
+      dockerfile: services/payment-service/Dockerfile
+    container_name: handrail-payment
+    restart: unless-stopped
+    ports:
+      - '4007:4007'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      PORT: 4007
+      DATABASE_URL_PAYMENT: postgresql://handrail:handrail_password@postgres:5432/handrail_db?schema=payment_svc
+      RABBITMQ_URL: amqp://handrail:handrail_password@rabbitmq:5672
+      RAZORPAY_KEY_ID: ${RAZORPAY_KEY_ID:-rzp_test_placeholder}
+      RAZORPAY_KEY_SECRET: ${RAZORPAY_KEY_SECRET:-rzp_secret_placeholder}
+      RAZORPAY_WEBHOOK_SECRET: ${RAZORPAY_WEBHOOK_SECRET:-rzp_webhook_secret_placeholder}
+      SUPABASE_JWT_SECRET: super-secret-jwt-token-with-minimum-32-chars-long!
+      SERVICE_SECRET: dev_internal_sync_token_secret
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -q -O - http://localhost:4007/health/live || exit 1']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 volumes:
   postgres_data:
   rabbitmq_data:

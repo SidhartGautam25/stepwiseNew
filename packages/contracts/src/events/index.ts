@@ -13,6 +13,7 @@ export const EVENT_PATTERNS = {
   RUN_PASSED: 'run.passed',
   RUN_FAILED: 'run.failed',
   STEP_UNLOCKED: 'step.unlocked',
+  PAYMENT_SUCCEEDED: 'payment.succeeded',
 } as const;
 
 export interface EventEnvelope<T = unknown> {
@@ -66,4 +67,15 @@ export interface StepUnlockedPayload {
   globalOrder: number;
   unlockedAt: string;
 }
+
+export interface PaymentSucceededPayload {
+  orderId: string;
+  paymentId: string;
+  userId: string;
+  workshopSlug: string;
+  amount: number;
+  currency: string;
+  paidAt: string;
+}
+
 

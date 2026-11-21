@@ -16,6 +16,7 @@ export function getGatewayRoutes(): RouteConfig[] {
   const catalogServiceUrl = process.env.CATALOG_SERVICE_URL || 'http://localhost:4001';
   const profileServiceUrl = process.env.PROFILE_SERVICE_URL || 'http://localhost:4004';
   const verificationServiceUrl = process.env.VERIFICATION_SERVICE_URL || 'http://localhost:4003';
+  const paymentServiceUrl = process.env.PAYMENT_SERVICE_URL || 'http://localhost:4007';
 
   return [
     // --- 1. Public Auth Endpoints ---
@@ -165,6 +166,22 @@ export function getGatewayRoutes(): RouteConfig[] {
       target: verificationServiceUrl,
       authMode: 'passthrough',
       methods: ['POST', 'OPTIONS'],
+    },
+
+    // --- 6. Payment Endpoints (payment-service) ---
+    {
+      id: 'payments-webhook-public',
+      prefix: '/v1/payments/webhook',
+      target: paymentServiceUrl,
+      authMode: 'public',
+      methods: ['POST', 'OPTIONS'],
+    },
+    {
+      id: 'payments-authenticated',
+      prefix: '/v1/payments',
+      target: paymentServiceUrl,
+      authMode: 'jwt',
+      matcher: (pathname) => pathname.startsWith('/v1/payments') && !pathname.startsWith('/v1/payments/webhook'),
     },
   ];
 }
