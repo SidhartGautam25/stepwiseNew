@@ -1,7 +1,7 @@
-import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import { Inject, Injectable, Logger, Optional, UnauthorizedException } from '@nestjs/common';
 import * as jose from 'jose';
 import type { AuthenticatedUser } from '@app/contracts';
-import type { AuthModuleOptions, TokenStrategy } from './interfaces/token-strategy.interface.js';
+import { AUTH_OPTIONS, type AuthModuleOptions, type TokenStrategy } from './interfaces/token-strategy.interface.js';
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const ALLOWED_ASYMMETRIC_ALGORITHMS = ['RS256', 'ES256'];
@@ -18,7 +18,7 @@ export class SupabaseJwtVerifier implements TokenStrategy {
   private expectedAudience: string = 'authenticated';
   private clockTolerance: number = 30; // 30 seconds skew tolerance
 
-  constructor(options?: AuthModuleOptions) {
+  constructor(@Optional() @Inject(AUTH_OPTIONS) options?: AuthModuleOptions) {
     if (options) {
       this.configure(options);
     } else {

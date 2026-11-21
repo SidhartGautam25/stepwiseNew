@@ -44,12 +44,27 @@ export class StructuredLogger implements LoggerService {
   }
 
   error(message: any, stack?: string, context?: string, meta?: Record<string, unknown>) {
+    let msg = '';
+    let trace = stack;
+    if (message instanceof Error) {
+      msg = message.message;
+      trace = trace || message.stack;
+    } else if (typeof message === 'string') {
+      msg = message;
+    } else {
+      try {
+        msg = JSON.stringify(message);
+      } catch {
+        msg = String(message);
+      }
+    }
+
     this.print({
       level: 'error',
       service: this.serviceName,
-      message: typeof message === 'string' ? message : JSON.stringify(message),
+      message: msg,
       context,
-      stack,
+      stack: trace,
       timestamp: new Date().toISOString(),
       meta,
     });

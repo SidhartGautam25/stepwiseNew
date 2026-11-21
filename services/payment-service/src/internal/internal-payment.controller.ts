@@ -19,5 +19,13 @@ export class InternalPaymentController {
   ) {
     return this.paymentService.getWorkshopPurchaseStatus(userId, workshopSlug);
   }
+
+  /**
+   * Service-to-service query: Get all workshop slugs paid by user
+   */
+  @Get('users/:userId/paid')
+  async getUserPaidWorkshops(@Param('userId') userId: string) {
+    return this.paymentService.getUserPaidWorkshops(userId);
+  }
 }
 

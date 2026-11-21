@@ -4,13 +4,17 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard.js';
 import { RolesGuard } from './guards/roles.guard.js';
 import { ServiceAuthGuard } from './guards/service-auth.guard.js';
 import { TokenRevocationService } from './services/token-revocation.service.js';
-import type { AuthModuleOptions } from './interfaces/token-strategy.interface.js';
+import { AUTH_OPTIONS, type AuthModuleOptions } from './interfaces/token-strategy.interface.js';
 
-export const AUTH_OPTIONS = 'AUTH_MODULE_OPTIONS';
+export { AUTH_OPTIONS };
 
 @Global()
 @Module({
   providers: [
+    {
+      provide: AUTH_OPTIONS,
+      useValue: {},
+    },
     SupabaseJwtVerifier,
     TokenRevocationService,
     JwtAuthGuard,
@@ -18,6 +22,7 @@ export const AUTH_OPTIONS = 'AUTH_MODULE_OPTIONS';
     ServiceAuthGuard,
   ],
   exports: [
+    AUTH_OPTIONS,
     SupabaseJwtVerifier,
     TokenRevocationService,
     JwtAuthGuard,

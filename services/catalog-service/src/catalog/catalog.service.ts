@@ -47,21 +47,20 @@ export class CatalogService {
     return workshops.map((w) => {
       const latestVer = w.versions.find((v) => v.id === w.latestPublishedId) || w.versions[0];
       const overviewJson = (latestVer?.overview?.sectionsJson as any) || {};
-      const languages = [
-        ...new Set(latestVer?.artifacts.map((a) => a.language).filter(Boolean) as string[]),
-      ];
+      const artifactLangs = (latestVer?.artifacts?.map((a) => a.language).filter(Boolean) as string[]) || [];
+      const languages = artifactLangs.length > 0
+        ? [...new Set(artifactLangs)]
+        : (overviewJson.languages || ['go', 'python']);
       const totalSteps =
         latestVer?.chapters.reduce((sum, ch) => sum + ch.steps.length, 0) || 0;
 
       return {
         id: w.id,
         slug: w.slug,
-        title: overviewJson.whatWeBuild
-          ? overviewJson.whatWeBuild.slice(0, 100).split('\n')[0]
-          : w.slug,
-        summary: overviewJson.howItWorks
-          ? overviewJson.howItWorks.slice(0, 200)
-          : '',
+        title: overviewJson.title || overviewJson.whatWeBuild?.slice(0, 100)?.split('\n')[0] || w.slug,
+        summary: overviewJson.summary || overviewJson.howItWorks || '',
+        difficulty: overviewJson.difficulty || 'Intermediate',
+        estimatedTime: overviewJson.estimatedTime || overviewJson.estimated_time || '4 - 6 hours',
         version: latestVer?.version || '1.0.0',
         languages,
         totalChapters: latestVer?.chapters.length || 0,
@@ -137,21 +136,51 @@ export class CatalogService {
     }
 
     const overviewJson = (versionRow.overview?.sectionsJson as any) || {};
-    const languages = [
-      ...new Set(versionRow.artifacts.map((a) => a.language).filter(Boolean) as string[]),
-    ];
+    const artifactLangs = (versionRow.artifacts?.map((a) => a.language).filter(Boolean) as string[]) || [];
+    const languages = artifactLangs.length > 0
+      ? [...new Set(artifactLangs)]
+      : (overviewJson.languages || ['go', 'python']);
     const totalSteps = versionRow.chapters.reduce(
       (sum, ch) => sum + ch.steps.length,
       0,
     );
 
+    let globalStepOrder = 1;
+    const chapters = versionRow.chapters.map((ch) => ({
+      id: ch.id,
+      slug: ch.chapterKey,
+      chapterKey: ch.chapterKey,
+      title: ch.title,
+      summary: ch.summary,
+      orderIndex: ch.orderNo,
+      orderNo: ch.orderNo,
+      estMinutes: ch.estMinutes,
+      steps: ch.steps.map((st) => ({
+        id: st.id,
+        slug: st.stepKey,
+        stepKey: st.stepKey,
+        title: st.title,
+        orderInChapter: st.orderInChapter,
+        globalOrder: globalStepOrder++,
+        testCount: 0,
+      })),
+    }));
+
     return {
       id: workshop.id,
       slug: workshop.slug,
+      title: overviewJson.title || workshop.slug,
+      summary: overviewJson.summary || overviewJson.howItWorks || '',
+      difficulty: overviewJson.difficulty || 'Intermediate',
+      estimatedTime: overviewJson.estimatedTime || overviewJson.estimated_time || '4 - 6 hours',
+      prerequisites: Array.isArray(overviewJson.prerequisites) ? overviewJson.prerequisites : [],
+      limitations: Array.isArray(overviewJson.limitations) ? overviewJson.limitations : [],
+      whatWeBuild: overviewJson.whatWeBuild || '',
+      whatYouLearn: Array.isArray(overviewJson.whatYouLearn) ? overviewJson.whatYouLearn : [],
+      languages,
       version: versionRow.version,
       versionId: versionRow.id,
       kind: versionRow.kind,
-      languages,
       overview: {
         whatWeBuild: overviewJson.whatWeBuild || '',
         whatYouLearn: overviewJson.whatYouLearn || '',
@@ -159,20 +188,7 @@ export class CatalogService {
         limitations: overviewJson.limitations || '',
         howItWorks: overviewJson.howItWorks || '',
       },
-      chapters: versionRow.chapters.map((ch) => ({
-        id: ch.id,
-        orderNo: ch.orderNo,
-        chapterKey: ch.chapterKey,
-        title: ch.title,
-        summary: ch.summary,
-        estMinutes: ch.estMinutes,
-        steps: ch.steps.map((st) => ({
-          id: st.id,
-          stepKey: st.stepKey,
-          title: st.title,
-          orderInChapter: st.orderInChapter,
-        })),
-      })),
+      chapters,
       totalChapters: versionRow.chapters.length,
       totalSteps,
       publishedAt: versionRow.publishedAt,
@@ -305,61 +321,102 @@ export class CatalogService {
       throw new NotFoundException(`Pinned version "${targetVersionId}" not found for "${slug}"`);
     }
 
-    const chapter = await this.prisma.chapter.findFirst({
-      where: {
-        versionId: targetVersionId,
-        OR: [{ id: chapterIdentifier }, { chapterKey: chapterIdentifier }],
-      },
-    });
+    let chapter: any = null;
+    if (chapterIdentifier && chapterIdentifier !== 'any') {
+      chapter = await this.prisma.chapter.findFirst({
+        where: {
+          versionId: targetVersionId,
+          OR: [{ id: chapterIdentifier }, { chapterKey: chapterIdentifier }],
+        },
+      });
 
-    if (!chapter) {
-      throw new NotFoundException(`Chapter "${chapterIdentifier}" not found`);
+      if (!chapter) {
+        throw new NotFoundException(`Chapter "${chapterIdentifier}" not found`);
+      }
     }
 
-    const isUnlocked =
-      access.unlockedChapters.includes(chapter.chapterKey) ||
-      access.unlockedChapters.includes(chapter.id);
-
-    if (!isUnlocked) {
-      throw new ForbiddenException(
-        `Chapter "${chapter.chapterKey}" is locked. Complete preceding chapters to unlock.`,
-      );
-    }
+    const stepWhere: any = chapter
+      ? {
+          chapterId: chapter.id,
+          OR: [{ id: stepIdentifier }, { stepKey: stepIdentifier }],
+        }
+      : {
+          chapter: { versionId: targetVersionId },
+          OR: [{ id: stepIdentifier }, { stepKey: stepIdentifier }],
+        };
 
     const step = await this.prisma.step.findFirst({
-      where: {
-        chapterId: chapter.id,
-        OR: [{ id: stepIdentifier }, { stepKey: stepIdentifier }],
-      },
+      where: stepWhere,
       include: {
-        contents: {
-          where: { level },
-        },
+        chapter: true,
+        contents: true,
       },
     });
 
     if (!step) {
       throw new NotFoundException(
-        `Step "${stepIdentifier}" not found in chapter "${chapter.chapterKey}"`,
+        `Step "${stepIdentifier}" not found in workshop "${slug}"`,
       );
     }
 
-    const taskContent = step.contents.find((c) => c.kind === 'task')?.md || '';
-    const theoryContent = step.contents.find((c) => c.kind === 'theory')?.md || '';
-    const hintsContent = step.contents.find((c) => c.kind === 'hint')?.md;
+    const activeChapter = chapter || (step as any).chapter;
+    const isUnlocked = activeChapter
+      ? access.unlockedChapters.includes(activeChapter.chapterKey) ||
+        access.unlockedChapters.includes(activeChapter.id)
+      : true;
+
+    if (!isUnlocked) {
+      throw new ForbiddenException(
+        `Chapter "${activeChapter?.chapterKey}" is locked. Complete preceding chapters to unlock.`,
+      );
+    }
+
+    const levelContents = step.contents.filter((c) => c.level === level);
+    const taskContent =
+      levelContents.find((c) => c.kind === 'task')?.md ||
+      step.contents.find((c) => c.kind === 'task')?.md ||
+      '';
+    const theoryContent =
+      levelContents.find((c) => c.kind === 'theory')?.md ||
+      step.contents.find((c) => c.kind === 'theory')?.md ||
+      '';
+    const hintsContent =
+      levelContents.find((c) => c.kind === 'hint')?.md ||
+      step.contents.find((c) => c.kind === 'hint')?.md;
+
+    const allLevelsContent: Record<string, { task: string; theory: string; hints?: string }> = {};
+    for (const lvl of ['beginner', 'intermediate', 'expert'] as const) {
+      const lvlItems = step.contents.filter((c) => c.level === lvl);
+      allLevelsContent[lvl] = {
+        task: lvlItems.find((c) => c.kind === 'task')?.md || taskContent,
+        theory: lvlItems.find((c) => c.kind === 'theory')?.md || theoryContent,
+        hints: lvlItems.find((c) => c.kind === 'hint')?.md || hintsContent,
+      };
+    }
+
+    const activeChapterKey = activeChapter?.chapterKey || '';
 
     return {
       id: step.id,
-      workshopSlug: slug,
-      chapterKey: chapter.chapterKey,
-      version: version.version,
-      orderInChapter: step.orderInChapter,
+      slug: step.stepKey,
       stepKey: step.stepKey,
       title: step.title,
+      globalOrder: step.orderInChapter,
+      workshopSlug: slug,
+      chapterSlug: activeChapterKey,
+      chapterKey: activeChapterKey,
+      version: version.version,
+      orderInChapter: step.orderInChapter,
       level,
+      currentLevel: level,
       taskMd: taskContent,
       theoryMd: theoryContent,
       hintsMd: hintsContent,
+      taskMdx: taskContent,
+      theoryMdx: theoryContent,
+      hintsMdx: hintsContent,
+      allLevelsContent,
+      tests: [],
     };
   }
 }

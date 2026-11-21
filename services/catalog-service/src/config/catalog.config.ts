@@ -47,7 +47,7 @@ export class CatalogConfigService {
       githubWebhookSecret: process.env.GITHUB_WEBHOOK_SECRET,
       serviceSecret: process.env.SERVICE_SECRET || process.env.INTERNAL_SYNC_TOKEN,
       supabaseJwtSecret: process.env.SUPABASE_JWT_SECRET,
-      profileServiceUrl: process.env.PROFILE_SERVICE_URL || 'http://localhost:4004',
+      profileServiceUrl: (process.env.PROFILE_SERVICE_URL || 'http://127.0.0.1:4004').replace('//localhost:', '//127.0.0.1:'),
     });
   }
 

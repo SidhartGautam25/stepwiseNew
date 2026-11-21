@@ -52,6 +52,19 @@ export function setupGatewayProxy(
             }
           },
           proxyRes: (proxyRes, req, res: any) => {
+            // Strip any upstream CORS headers from microservices to prevent wildcard '*' conflicts
+            delete proxyRes.headers['access-control-allow-origin'];
+            delete proxyRes.headers['access-control-allow-credentials'];
+            delete proxyRes.headers['access-control-allow-methods'];
+            delete proxyRes.headers['access-control-allow-headers'];
+            delete proxyRes.headers['access-control-expose-headers'];
+
+            const origin = req.headers['origin'];
+            if (origin) {
+              res.setHeader('Access-Control-Allow-Origin', origin);
+              res.setHeader('Access-Control-Allow-Credentials', 'true');
+            }
+
             if (isSse) {
               res.setHeader('Cache-Control', 'no-cache, no-transform');
               res.setHeader('Content-Type', 'text/event-stream');
@@ -60,6 +73,22 @@ export function setupGatewayProxy(
               if (typeof res.flushHeaders === 'function') {
                 res.flushHeaders();
               }
+            }
+          },
+          error: (err: any, req: any, res: any) => {
+            const reqId = req.headers?.['x-request-id'] || req.headers?.[CORRELATION_ID_HEADER];
+            if (!res.headersSent) {
+              const origin = req.headers?.origin;
+              if (origin) {
+                res.setHeader('Access-Control-Allow-Origin', origin);
+                res.setHeader('Access-Control-Allow-Credentials', 'true');
+              }
+              res.status(503).json({
+                statusCode: 503,
+                error: 'Service Unavailable',
+                message: `Upstream service at ${target} is currently unavailable or restarting: ${err.message || 'connection failed'}`,
+                correlationId: reqId,
+              });
             }
           },
         },

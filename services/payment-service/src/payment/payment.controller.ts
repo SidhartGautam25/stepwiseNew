@@ -2,6 +2,7 @@ import {
   Controller,
   Post,
   Get,
+  Query,
   Body,
   Param,
   Headers,
@@ -54,12 +55,60 @@ export class PaymentController {
     @CurrentUser() user: AuthenticatedUser,
     @Body() body: unknown,
   ) {
-    const parsed = VerifyPaymentSchema.safeParse(body);
+    const normalized = this.normalizeVerifyPayload(body);
+    const parsed = VerifyPaymentSchema.safeParse(normalized);
     if (!parsed.success) {
       throw new BadRequestException(parsed.error.errors[0]?.message || 'Invalid verification payload');
     }
 
     return this.paymentService.verifyPayment(user.id, parsed.data);
+  }
+
+  /**
+   * Verify Client Checkout Signature via GET or Check Verification Service Status
+   * Authenticated route
+   */
+  @Get('verify')
+  @UseGuards(JwtAuthGuard)
+  async verifyPaymentGet(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query() query: Record<string, string>,
+  ) {
+    const normalized = this.normalizeVerifyPayload(query);
+    if (!normalized.razorpayOrderId) {
+      return {
+        statusCode: 200,
+        status: 'ok',
+        message: 'Payment verification service is active.',
+      };
+    }
+
+    const parsed = VerifyPaymentSchema.safeParse(normalized);
+    if (!parsed.success) {
+      throw new BadRequestException(parsed.error.errors[0]?.message || 'Invalid verification query parameters');
+    }
+
+    return this.paymentService.verifyPayment(user.id, parsed.data);
+  }
+
+  private normalizeVerifyPayload(raw: any) {
+    if (!raw || typeof raw !== 'object') return {};
+    return {
+      razorpayOrderId:
+        raw.razorpayOrderId ||
+        raw.razorpay_order_id ||
+        raw.orderId ||
+        raw.order_id,
+      razorpayPaymentId:
+        raw.razorpayPaymentId ||
+        raw.razorpay_payment_id ||
+        raw.paymentId ||
+        raw.payment_id,
+      razorpaySignature:
+        raw.razorpaySignature ||
+        raw.razorpay_signature ||
+        raw.signature,
+    };
   }
 
   /**

@@ -1,4 +1,4 @@
-import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
+import { Inject, Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import {
   S3Client,
   HeadBucketCommand,
@@ -23,7 +23,7 @@ export class StorageService implements OnModuleInit {
   private readonly s3: S3Client;
   private readonly bucket: string;
 
-  constructor(private readonly config: CatalogConfigService) {
+  constructor(@Inject(CatalogConfigService) private readonly config: CatalogConfigService) {
     this.bucket = this.config.s3BucketCatalog;
     this.s3 = new S3Client({
       endpoint: this.config.s3Endpoint,

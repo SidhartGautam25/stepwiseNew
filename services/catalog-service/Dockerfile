@@ -14,6 +14,9 @@ COPY packages/ ./packages/
 # Copy services/catalog-service
 COPY services/catalog-service/ ./services/catalog-service/
 
+# Copy content
+COPY content/ ./content/
+
 # Install dependencies
 RUN pnpm install --frozen-lockfile
 

@@ -7,7 +7,6 @@ async function bootstrap() {
   const logger = new StructuredLogger('progress-service');
   const app = await NestFactory.create(AppModule, { logger });
 
-  app.enableCors();
   app.useGlobalFilters(new AllExceptionsFilter());
 
   const config = new DocumentBuilder()
@@ -21,7 +20,7 @@ async function bootstrap() {
   SwaggerModule.setup('api/docs', app, document);
 
   const port = process.env.PORT || process.env.PORT_PROGRESS || 4004;
-  await app.listen(port);
+  await app.listen(port, '0.0.0.0');
   logger.log(`Progress Service running on port ${port}`, 'Bootstrap');
 }
 

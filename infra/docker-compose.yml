@@ -107,6 +107,7 @@ services:
       retries: 5
 
   catalog:
+    profiles: ["services"]
     build:
       context: ..
       dockerfile: services/catalog-service/Dockerfile
@@ -114,6 +115,8 @@ services:
     restart: unless-stopped
     ports:
       - '4001:4001'
+    volumes:
+      - ../content:/app/content:ro
     depends_on:
       postgres:
         condition: service_healthy
@@ -144,6 +147,7 @@ services:
       retries: 5
 
   payment:
+    profiles: ["services"]
     build:
       context: ..
       dockerfile: services/payment-service/Dockerfile

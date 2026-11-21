@@ -7,6 +7,8 @@ export interface TokenStrategy {
   validate(token: string): Promise<AuthenticatedUser>;
 }
 
+export const AUTH_OPTIONS = 'AUTH_MODULE_OPTIONS';
+
 export interface AuthModuleOptions {
   supabaseUrl?: string;
   supabaseJwtSecret?: string;

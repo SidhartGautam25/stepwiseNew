@@ -98,4 +98,16 @@ if (!allSuccess) {
     console.warn(`[Handrail DB Sync] Warning during client regeneration: ${err.message}`);
   }
   console.log('\n🎉 All PostgreSQL database schemas, tables, and TypeScript clients are up to date!');
+
+  console.log('\n[Handrail DB Sync] Seeding published workshops into catalog schema...');
+  try {
+    execSync('pnpm content:sync', {
+      stdio: 'inherit',
+      env: process.env,
+      cwd: process.cwd(),
+      shell: true as any,
+    });
+  } catch (err: any) {
+    console.warn(`[Handrail DB Sync] Warning during content sync: ${err.message}`);
+  }
 }
